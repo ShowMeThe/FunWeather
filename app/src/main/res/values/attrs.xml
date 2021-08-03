@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+
+    <declare-styleable name="DrawingTextView">
+        <attr name="contentText" format="string"/>
+        <attr name="contentTextColor" format="color"/>
+        <attr name="drawingAuto" format="boolean"/>
+        <attr name="contentTextSize" format="dimension"/>
+    </declare-styleable>
+
+    <declare-styleable name="BlurMaskLayout">
+        <attr name="blurRadius" format="float"/>
+        <attr name="blurSampling" format="float"/>
+    </declare-styleable>
+
+</resources>

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.show.weather">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+
+    <application
+        android:name=".app.FunApplication"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.FunWeather"
+        tools:ignore="AllowBackup">
+        <activity android:name=".ui.MainActivity"
+            android:screenOrientation="portrait"
+            tools:ignore="LockedOrientationActivity">
+        </activity>
+        <activity
+            android:name=".ui.SplashActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.Splash"
+            tools:ignore="LockedOrientationActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <provider
+            android:name="com.show.launch.AppProvider"
+            android:authorities="${applicationId}.AppProvider"
+            android:exported="false"
+            android:multiprocess="true"
+            tools:node="merge">
+            <meta-data
+                android:name="com.show.weather.app.MainInitializer"
+                android:value="@string/initializer" />
+        </provider>
+
+
+        <meta-data
+            android:name="com.amap.api.v2.apikey"
+            android:value="e8a33f213d5bf5df86ffb9a3555d4f3d" />
+
+        <service android:name="com.amap.api.location.APSService" />
+
+    </application>
+
+</manifest>

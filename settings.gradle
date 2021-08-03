@@ -1,0 +1,4 @@
+rootProject.name = "FunWeather"
+include ':app',":core"
+includeBuild "version"
+

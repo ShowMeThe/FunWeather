@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<transitionSet xmlns:android="http://schemas.android.com/apk/res/android"
+    android:duration="@integer/window_share_transition_duration">
+
+    <fade android:interpolator="@android:interpolator/linear" />
+    <changeImageTransform android:interpolator="@android:interpolator/accelerate_decelerate" />
+    <changeBounds android:interpolator="@android:interpolator/accelerate_decelerate" />
+    <changeClipBounds android:interpolator="@android:interpolator/accelerate_decelerate" />
+    <changeTransform android:interpolator="@android:interpolator/linear" />
+    <changeScroll android:interpolator="@android:interpolator/linear"/>
+
+</transitionSet>

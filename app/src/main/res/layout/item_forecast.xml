@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+        <variable
+            name="Bean"
+            type="com.show.weather.entity.ForecastItem" />
+    </data>
+
+    <LinearLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <androidx.appcompat.widget.AppCompatTextView
+            android:id="@+id/tvDate"
+            android:textStyle="bold"
+            android:textSize="15dp"
+            android:text="@{Bean.date}"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            tools:text="今天"
+            />
+        <androidx.appcompat.widget.AppCompatTextView
+            android:id="@+id/tvDateInWeek"
+            android:textStyle="bold"
+            android:textSize="15dp"
+            android:text="@{Bean.dateInWeek}"
+            android:layout_marginTop="4dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            tools:text="周一"
+            />
+
+    </LinearLayout>
+</layout>
