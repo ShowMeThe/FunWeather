@@ -25,6 +25,7 @@ import com.show.weather.utils.WeatherFilter
 @Transition
 class MainActivity : BaseActivity<ActivityMainBinding, MainViewModel>() {
 
+
     override fun getViewId(): Int = R.layout.activity_main
 
     override fun onBundle(bundle: Bundle) {
@@ -34,7 +35,7 @@ class MainActivity : BaseActivity<ActivityMainBinding, MainViewModel>() {
     override fun observerUI() {
 
         viewModel.weather.asLiveData()
-            .read(this) {
+            .read(this){
                 it?.apply {
                     initView(this)
                 }
@@ -52,6 +53,7 @@ class MainActivity : BaseActivity<ActivityMainBinding, MainViewModel>() {
         statusBar {
             uiFullScreen()
         }
+        binding.refresh.setColorSchemeResources(R.color.colorPrimary)
         requestPermissionWhenNeed()
     }
 
@@ -102,13 +104,19 @@ class MainActivity : BaseActivity<ActivityMainBinding, MainViewModel>() {
                 tvAddress.text = address
             }
             val adcode = it?.adCode ?: "110101"
-            viewModel.getNowWeather(adcode)
-            viewModel.getForecastWeather(adcode)
+            requestWeather(adcode)
         }
+    }
+
+    private fun requestWeather(adcode: String) {
+        viewModel.getNowWeather(adcode)
+        viewModel.getForecastWeather(adcode)
     }
 
     private fun initView(weather: Weather) {
         binding {
+            refresh.isRefreshing = false
+
             val today = weather.lives[0]
             today.apply {
                 tvWeather.text = this.weather
@@ -126,6 +134,7 @@ class MainActivity : BaseActivity<ActivityMainBinding, MainViewModel>() {
 
     private fun initData(forecast: WeatherForecast) {
         binding {
+
             val casts = forecast.forecasts[0].casts
             binding.forecast.updateForecast(casts.map {
                 it.toForecastItem()
@@ -135,6 +144,17 @@ class MainActivity : BaseActivity<ActivityMainBinding, MainViewModel>() {
     }
 
     override fun initListener() {
+
+        binding {
+
+            refresh.setOnRefreshListener {
+                requestWeather(
+                    Stores.getString(StoreConstant.REQUEST_LOCATION_ADDRESS, "110101") ?: "110101"
+                )
+            }
+
+
+        }
 
 
     }

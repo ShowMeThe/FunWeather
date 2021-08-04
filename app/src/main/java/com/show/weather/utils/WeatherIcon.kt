@@ -35,7 +35,7 @@ object WeatherIcon {
                 val drawable = instant.parse(reportTime)?.let {
                     calendar.timeInMillis = it.time
                     val hour = calendar[Calendar.HOUR_OF_DAY]
-                    if(hour in 17..24 || hour in 0 .. 5){
+                    if(hour in 18..24 || hour in 0 .. 5){
                         behavior = Behavior.JUMP
                         ContextCompat.getDrawable(AppContext.getContext(), R.drawable.ic_moon)
                     }else{

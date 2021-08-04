@@ -18,51 +18,46 @@ import com.show.kcore.http.coroutines.*
 
 inline fun <reified T : ViewModel> Class<T>.getAppViewModel() = ViewModelProvider(
     AppContext.get().context.applicationContext as ViewModelStoreOwner,
-    ViewModelProvider.AndroidViewModelFactory(AppContext.get().context.applicationContext as Application)).get(this)
+    ViewModelProvider.AndroidViewModelFactory(AppContext.get().context.applicationContext as Application)
+).get(this)
 
-fun <T> LiveData<KResult<T>>.read(lifecycleOwner:LifecycleOwner,
-                                         loading:(()->Unit)? = null,
-                                         timeOut :(()->Unit)? = null,
-                                         error:((exception:Exception?,t:T?)->Unit)? = null,
-                                         data:((data:T?)->Unit)? = null,){
+fun <T> LiveData<KResult<T>>.read(
+    lifecycleOwner: LifecycleOwner,
+    loading: (() -> Unit)? = null,
+    timeOut: (() -> Unit)? = null,
+    error: ((exception: Exception?, t: T?) -> Unit)? = null,
+    data: ((data: T?) -> Unit)? = null,
+) {
 
-    val observer = Observer<KResult<T>> {
-        if(it!= null){
-            it.apply {
-                when(this){
-                    is LoadingResult<T> ->{
+    this.observe(lifecycleOwner, Observer {
+        kotlin.runCatching {
+            it?.apply {
+                when (this) {
+                    is LoadingResult<T> -> {
                         loading?.invoke()
                     }
-                    is SuccessResult<T> ->{
+                    is SuccessResult<T> -> {
                         data?.invoke(response)
                     }
-                    is FailedResult<T> ->{
-                        error?.invoke(exception,it.response)
+                    is FailedResult<T> -> {
+                        error?.invoke(exception, it.response)
                     }
-                    is TimeOutResult<T> ->{
+                    is TimeOutResult<T> -> {
                         timeOut?.invoke()
                     }
                 }
-            }
-        }else{
-            error?.invoke(Exception("KResult data is null"),null)
+            } ?: error?.invoke(Exception("KResult data is null"), null)
+        }.onFailure {
+            it.printStackTrace()
         }
-    }
-
-    this.observe(lifecycleOwner,observer)
-    val eventObserver = LifecycleEventObserver{_ , event  ->
-        if(event == Lifecycle.Event.ON_DESTROY){
-            this.removeObserver(observer)
-        }
-    }
-    lifecycleOwner.lifecycle.addObserver(eventObserver)
+    })
 }
 
 
-
-inline fun <T : View> T.doOnGlobalLayout(crossinline  onLayout: T.()->Unit){
+inline fun <T : View> T.doOnGlobalLayout(crossinline onLayout: T.() -> Unit) {
     if (viewTreeObserver.isAlive) {
-        viewTreeObserver.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
+        viewTreeObserver.addOnGlobalLayoutListener(object :
+            ViewTreeObserver.OnGlobalLayoutListener {
             override fun onGlobalLayout() {
                 onLayout()
                 viewTreeObserver.removeOnGlobalLayoutListener(this)
@@ -72,13 +67,15 @@ inline fun <T : View> T.doOnGlobalLayout(crossinline  onLayout: T.()->Unit){
 }
 
 
-
-inline fun View.setOnSingleClickListener(intervalTime:Long = 450L,crossinline onSingleClick : (it: View)->Unit){
+inline fun View.setOnSingleClickListener(
+    intervalTime: Long = 450L,
+    crossinline onSingleClick: (it: View) -> Unit
+) {
     var lastClickTime = 0L
 
     setOnClickListener {
         val time = System.currentTimeMillis()
-        if(time - lastClickTime > intervalTime){
+        if (time - lastClickTime > intervalTime) {
             onSingleClick.invoke(it)
             lastClickTime = time
         }
@@ -154,20 +151,20 @@ open class SimpleLifecycleCallbacks : Application.ActivityLifecycleCallbacks {
     }
 }
 
-fun View.gone(){
+fun View.gone() {
     visibility = View.GONE
 }
 
-fun View.visible(){
+fun View.visible() {
     visibility = View.VISIBLE
 }
 
-fun View.inVisible(){
+fun View.inVisible() {
     visibility = View.INVISIBLE
 }
 
 
-fun RecyclerView.scrollToPositionExactly(position: Int,smooth:Boolean = true) {
+fun RecyclerView.scrollToPositionExactly(position: Int, smooth: Boolean = true) {
     val findView = layoutManager!!.findViewByPosition(position)
     val orientation = when (layoutManager) {
         is LinearLayoutManager -> {
@@ -176,7 +173,7 @@ fun RecyclerView.scrollToPositionExactly(position: Int,smooth:Boolean = true) {
         is GridLayoutManager -> {
             (layoutManager as GridLayoutManager).orientation
         }
-        is StaggeredGridLayoutManager ->{
+        is StaggeredGridLayoutManager -> {
             (layoutManager as StaggeredGridLayoutManager).orientation
         }
         else -> {
@@ -188,20 +185,34 @@ fun RecyclerView.scrollToPositionExactly(position: Int,smooth:Boolean = true) {
         addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 when (val layoutManager = layoutManager) {
-                    is LinearLayoutManager,is GridLayoutManager,is StaggeredGridLayoutManager -> {
+                    is LinearLayoutManager, is GridLayoutManager, is StaggeredGridLayoutManager -> {
                         val targetView = layoutManager.findViewByPosition(position)
                         if (orientation == RecyclerView.VERTICAL && targetView != null) {
-                            if(smooth){
-                                smoothScrollBy(0, targetView.top - layoutManager.getTopDecorationHeight(targetView))
-                            }else{
-                                scrollBy(0, targetView.top - layoutManager.getTopDecorationHeight(targetView))
+                            if (smooth) {
+                                smoothScrollBy(
+                                    0,
+                                    targetView.top - layoutManager.getTopDecorationHeight(targetView)
+                                )
+                            } else {
+                                scrollBy(
+                                    0,
+                                    targetView.top - layoutManager.getTopDecorationHeight(targetView)
+                                )
                             }
                             removeOnScrollListener(this)
-                        }else  if (orientation == RecyclerView.HORIZONTAL && targetView != null){
-                            if(smooth){
-                                smoothScrollBy(targetView.left - layoutManager.getLeftDecorationWidth(targetView), 0)
-                            }else{
-                                scrollBy(targetView.left - layoutManager.getLeftDecorationWidth(targetView), 0)
+                        } else if (orientation == RecyclerView.HORIZONTAL && targetView != null) {
+                            if (smooth) {
+                                smoothScrollBy(
+                                    targetView.left - layoutManager.getLeftDecorationWidth(
+                                        targetView
+                                    ), 0
+                                )
+                            } else {
+                                scrollBy(
+                                    targetView.left - layoutManager.getLeftDecorationWidth(
+                                        targetView
+                                    ), 0
+                                )
                             }
                             removeOnScrollListener(this)
                         }
@@ -211,17 +222,23 @@ fun RecyclerView.scrollToPositionExactly(position: Int,smooth:Boolean = true) {
         })
     } else {
         when (val layoutManager = layoutManager) {
-            is LinearLayoutManager,is GridLayoutManager,is StaggeredGridLayoutManager -> {
+            is LinearLayoutManager, is GridLayoutManager, is StaggeredGridLayoutManager -> {
                 if (orientation == RecyclerView.VERTICAL) {
-                    if(smooth){
-                        smoothScrollBy(0, findView.top - layoutManager.getTopDecorationHeight(findView))
-                    }else{
+                    if (smooth) {
+                        smoothScrollBy(
+                            0,
+                            findView.top - layoutManager.getTopDecorationHeight(findView)
+                        )
+                    } else {
                         scrollBy(0, findView.top - layoutManager.getTopDecorationHeight(findView))
                     }
-                }else  if (orientation == RecyclerView.HORIZONTAL){
-                    if(smooth){
-                        smoothScrollBy(findView.left - layoutManager.getLeftDecorationWidth(findView), 0)
-                    }else{
+                } else if (orientation == RecyclerView.HORIZONTAL) {
+                    if (smooth) {
+                        smoothScrollBy(
+                            findView.left - layoutManager.getLeftDecorationWidth(findView),
+                            0
+                        )
+                    } else {
                         scrollBy(findView.left - layoutManager.getLeftDecorationWidth(findView), 0)
                     }
                 }

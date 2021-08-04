@@ -34,7 +34,8 @@ class KRequest<T>(private val request: suspend () -> Response<T>) {
         onError: (suspend Throwable.() -> Unit)?
     ): Flow<Response<T>?> {
         return flow {
-            emit(tryRepeat(scope, onError))
+            val result = tryRepeat(scope, onError)
+            emit(result)
         }
     }
 

@@ -1,6 +1,5 @@
 package com.show.weather.entity
 
-import com.show.kcore.http.JsonResult
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 

@@ -6,10 +6,12 @@ import android.animation.ValueAnimator.REVERSE
 import android.content.Context
 import android.graphics.drawable.Drawable
 import android.util.AttributeSet
+import android.util.Log
 import android.view.Gravity
 import android.view.animation.*
 import android.widget.FrameLayout
 import android.widget.ImageView
+import androidx.core.view.children
 import com.show.kcore.extras.display.dp
 import com.show.weather.utils.Behavior
 import com.show.weather.utils.Icon
@@ -35,6 +37,12 @@ class WeatherView @JvmOverloads constructor(
     }
 
     fun resetIcons(vararg icon: Icon) {
+        children.forEach {
+            if(it is ImageView){
+                it.clearAnimation()
+            }
+        }
+        removeAllViews()
         iconStacks.clear()
         iconStacks.addAll(icon)
         resetLayout()
@@ -110,12 +118,13 @@ class WeatherView @JvmOverloads constructor(
             Behavior.JUMP ->{
                 val translateAnimation = TranslateAnimation(
                     0f,
-                    0f, -10f, 10f
+                    0f, -25f, 0f
                 )
                 translateAnimation.apply {
                     duration = mDuration
                     interpolator = mInterpolator
                     repeatCount = -1
+                    repeatMode = REVERSE
                 }
                 view.startAnimation(translateAnimation)
             }
