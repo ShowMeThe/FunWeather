@@ -1,26 +1,21 @@
 package com.show.weather.widget
 
 import android.animation.Animator
-import android.animation.AnimatorSet
-import android.animation.ObjectAnimator
 import android.animation.ValueAnimator.RESTART
 import android.animation.ValueAnimator.REVERSE
 import android.content.Context
 import android.graphics.drawable.Drawable
 import android.util.AttributeSet
-import android.util.Log
 import android.view.Gravity
-import android.view.ViewGroup
 import android.view.animation.*
 import android.widget.FrameLayout
 import android.widget.ImageView
-import androidx.core.view.marginLeft
-import com.bumptech.glide.request.transition.DrawableCrossFadeTransition
 import com.show.kcore.extras.display.dp
-import com.show.weather.Behavior
-import com.show.weather.Icon
-import com.show.weather.R
-import com.show.weather.WeatherIcon
+import com.show.weather.utils.Behavior
+import com.show.weather.utils.Icon
+import com.show.weather.utils.WeatherIcon
+import java.util.*
+import kotlin.collections.ArrayList
 
 class WeatherView @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
@@ -33,6 +28,11 @@ class WeatherView @JvmOverloads constructor(
     private val defaultLargeSize = 65f.dp.toInt()
     private val defaultSize = 55f.dp.toInt()
     private val defaultSmallSize = 35f.dp.toInt()
+    private var mReportTime = ""
+
+    fun updateReportTime(time: String){
+        mReportTime = time
+    }
 
     fun resetIcons(vararg icon: Icon) {
         iconStacks.clear()
@@ -46,7 +46,7 @@ class WeatherView @JvmOverloads constructor(
     }
 
     private fun resetLayout() {
-        val types = iconStacks.map { WeatherIcon.getTypeByIcon(it) }
+        val types = iconStacks.map { WeatherIcon.getTypeByIcon(it,mReportTime) }
         types.forEachIndexed { index, type ->
             when (type.icon) {
                 Icon.SUN -> createAnimatorView(type.behavior, index, Gravity.CENTER, type.logo)
@@ -107,6 +107,18 @@ class WeatherView @JvmOverloads constructor(
     ) {
         val view = createIv(index, width, height, gravity, drawable, offsetX, offsetY)
         when (behavior) {
+            Behavior.JUMP ->{
+                val translateAnimation = TranslateAnimation(
+                    0f,
+                    0f, -10f, 10f
+                )
+                translateAnimation.apply {
+                    duration = mDuration
+                    interpolator = mInterpolator
+                    repeatCount = -1
+                }
+                view.startAnimation(translateAnimation)
+            }
             Behavior.ROTATE -> {
                 val rotateAnimation = RotateAnimation(
                     0f, 360f, Animation.RELATIVE_TO_SELF,

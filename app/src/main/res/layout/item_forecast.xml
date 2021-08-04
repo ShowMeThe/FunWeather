@@ -34,5 +34,13 @@
             tools:text="周一"
             />
 
+        <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/ivLogo"
+            android:layout_marginTop="12dp"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            loadDrawable="@{Bean.logo}"
+            />
+
     </LinearLayout>
 </layout>

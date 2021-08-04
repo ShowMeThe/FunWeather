@@ -3,12 +3,8 @@ package com.show.weather.ui
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Bundle
-import android.util.Log
 import androidx.lifecycle.asLiveData
 import com.show.kclock.MILLIS_DAY
-import com.show.kclock.dateTime
-import com.show.kclock.format
-import com.show.kclock.yyyy_MM_dd
 import com.show.kcore.base.BaseActivity
 import com.show.kcore.base.Transition
 import com.show.kcore.extras.gobal.read
@@ -16,7 +12,6 @@ import com.show.kcore.extras.status.statusBar
 import com.show.kcore.extras.string.builder
 import com.show.kcore.rden.Stores
 import com.show.permission.PermissionFactory
-import com.show.weather.Icon
 import com.show.weather.R
 import com.show.weather.const.StoreConstant
 import com.show.weather.databinding.ActivityMainBinding
@@ -25,7 +20,7 @@ import com.show.weather.entity.WeatherForecast
 import com.show.weather.entity.toForecastItem
 import com.show.weather.location.Location
 import com.show.weather.ui.vm.MainViewModel
-import com.show.weather.widget.WeatherFilter
+import com.show.weather.utils.WeatherFilter
 
 @Transition
 class MainActivity : BaseActivity<ActivityMainBinding, MainViewModel>() {
@@ -46,7 +41,7 @@ class MainActivity : BaseActivity<ActivityMainBinding, MainViewModel>() {
             }
 
         viewModel.weatherForecast.asLiveData()
-            .read(this){
+            .read(this) {
                 it?.apply {
                     initData(this)
                 }
@@ -121,16 +116,21 @@ class MainActivity : BaseActivity<ActivityMainBinding, MainViewModel>() {
                 tvWind.text = "$winddirection -- ${windpower}"
                 tvTemp.text = temperature.builder?.append("°C")
             }
-            binding.weather.resetIcons(*WeatherFilter.getWeatherByName(today.weather))
+
+            binding.weather.apply {
+                updateReportTime(today.reporttime)
+                resetIcons(*WeatherFilter.getWeatherByName(today.weather))
+            }
         }
     }
 
-    private fun initData(forecast: WeatherForecast){
+    private fun initData(forecast: WeatherForecast) {
         binding {
-            val list = forecast.forecasts[0].casts.map {
+            val casts = forecast.forecasts[0].casts
+            binding.forecast.updateForecast(casts.map {
                 it.toForecastItem()
-            }
-            binding.forecast.updateForecast(list)
+            })
+            binding.forecast.updateTemp(casts)
         }
     }
 

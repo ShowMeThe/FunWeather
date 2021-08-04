@@ -1,16 +1,24 @@
-package com.show.weather
+package com.show.weather.utils
 
 import android.graphics.Color
-import android.graphics.ColorFilter
 import android.graphics.PorterDuff
 import android.graphics.PorterDuffColorFilter
 import android.graphics.drawable.Drawable
 import androidx.core.content.ContextCompat
 import com.show.kcore.base.AppContext
+import com.show.weather.R
+import java.text.SimpleDateFormat
+import java.util.*
 
 object WeatherIcon {
 
-    fun getTypeByIcon(icon: Icon): Type {
+    private val instant = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.CHINA)
+
+    private val calendar by lazy {
+        Calendar.getInstance()
+    }
+
+    fun getTypeByIcon(icon: Icon, reportTime: String): Type {
         return when (icon) {
             Icon.WIND -> Type(
                 icon,
@@ -22,11 +30,24 @@ object WeatherIcon {
                 ContextCompat.getDrawable(AppContext.getContext(), R.drawable.ic_rain),
                 Behavior.WAVE
             )
-            Icon.SUN -> Type(
-                icon,
-                ContextCompat.getDrawable(AppContext.getContext(), R.drawable.ic_sun),
-                Behavior.ROTATE
-            )
+            Icon.SUN -> {
+                var behavior = Behavior.ROTATE
+                val drawable = instant.parse(reportTime)?.let {
+                    calendar.timeInMillis = it.time
+                    val hour = calendar[Calendar.HOUR_OF_DAY]
+                    if(hour in 17..24 || hour in 0 .. 5){
+                        behavior = Behavior.JUMP
+                        ContextCompat.getDrawable(AppContext.getContext(), R.drawable.ic_moon)
+                    }else{
+                        ContextCompat.getDrawable(AppContext.getContext(), R.drawable.ic_sun)
+                    }
+                }
+                return Type(
+                    icon,
+                    drawable,
+                    behavior
+                )
+            }
             Icon.CLOUD_1, Icon.CLOUD_2 -> Type(
                 icon,
                 ContextCompat.getDrawable(
@@ -45,10 +66,10 @@ object WeatherIcon {
 class Type(val icon: Icon, val logo: Drawable?, val behavior: Behavior)
 
 enum class Behavior {
-    ROTATE, WAVE, FADE
+    ROTATE, WAVE, FADE,JUMP
 }
 
 
 enum class Icon {
-    RAIN,RAIN_1,RAIN_2, WIND, SUN, CLOUD_1, CLOUD_2
+    RAIN, RAIN_1, RAIN_2, WIND, SUN, CLOUD_1, CLOUD_2
 }

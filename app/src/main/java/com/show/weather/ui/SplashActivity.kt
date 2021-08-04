@@ -17,7 +17,7 @@ class SplashActivity : AppCompatActivity() {
         setUpTransition()
 
         statusBar {
-            uiFullScreen(false)
+            uiFullScreen(true)
         }
 
         lifecycleScope.launchWhenCreated {

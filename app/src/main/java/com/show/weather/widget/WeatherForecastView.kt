@@ -1,6 +1,7 @@
 package com.show.weather.widget
 
 import android.content.Context
+import android.graphics.Color
 import android.util.AttributeSet
 import android.view.ViewGroup
 import android.widget.GridLayout
@@ -13,6 +14,7 @@ import com.show.kcore.adapter.DataBindBaseAdapter
 import com.show.kcore.extras.display.dp
 import com.show.weather.R
 import com.show.weather.databinding.ItemForecastBinding
+import com.show.weather.entity.Cast
 import com.show.weather.entity.ForecastItem
 
 class WeatherForecastView @JvmOverloads constructor(
@@ -20,7 +22,10 @@ class WeatherForecastView @JvmOverloads constructor(
 ) : LinearLayout(context, attrs, defStyleAttr) {
 
 
-    private val rvView by lazy { RecyclerView(context) }
+    private val lineView by lazy { WeatherForecastLineView(context) }
+    private val rvView by lazy { RecyclerView(context).apply {
+        overScrollMode = OVER_SCROLL_NEVER
+    } }
     private val forecasts = ObservableArrayList<ForecastItem>()
     private val layoutManager by lazy { GridLayoutManager(context, 4) }
     private val adapter by lazy { ForecastAdapter(context, forecasts) }
@@ -36,8 +41,13 @@ class WeatherForecastView @JvmOverloads constructor(
             rvView,
             -1,
             LayoutParams(LayoutParams.MATCH_PARENT, 100f.dp.toInt()).apply {
-                topMargin = 30f.dp.toInt()
+                topMargin = 20f.dp.toInt()
             }, false
+        )
+        addViewInLayout(
+            lineView,
+            -1,
+            LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT), false
         )
         initAdapter()
     }
@@ -51,6 +61,12 @@ class WeatherForecastView @JvmOverloads constructor(
     fun updateForecast(list: List<ForecastItem>) {
         forecasts.clear()
         forecasts.addAll(list)
+    }
+
+    fun updateTemp(list : List<Cast>){
+        val up = list.map { it.daytemp.toInt() }
+        val low = list.map { it.nighttemp.toInt() }
+        lineView.updateData(up,low)
     }
 
 }
