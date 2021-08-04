@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout>
+
+    <data>
+        <variable
+            name="Bean"
+            type="com.show.weather.ui.adapter.QualityItem" />
+    </data>
+
+    <LinearLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:orientation="vertical"
+        android:padding="15dp"
+        android:gravity="start|center"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <androidx.appcompat.widget.AppCompatTextView
+            android:id="@+id/tvLogo"
+            android:textSize="16dp"
+            android:text="@{Bean.logoTitle}"
+            android:drawablePadding="5dp"
+            android:layout_marginTop="5dp"
+            android:textColor="@color/colorPrimary"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            loadDrawable="@{Bean.logo}"
+            />
+
+        <androidx.appcompat.widget.AppCompatTextView
+            android:id="@+id/tvData"
+            android:textStyle="bold"
+            android:textSize="18dp"
+            android:layout_marginStart="15dp"
+            android:text="@{Bean.data}"
+            android:textColor="@color/white"
+            android:layout_marginTop="10dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
+    </LinearLayout>
+
+</layout>

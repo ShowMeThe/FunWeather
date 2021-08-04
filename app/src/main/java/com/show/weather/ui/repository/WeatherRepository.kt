@@ -9,6 +9,7 @@ import com.show.kcore.http.coroutines.callResult
 import com.show.weather.api.Main
 import com.show.weather.entity.Weather
 import com.show.weather.entity.WeatherForecast
+import com.show.weather.entity.WeatherQuality
 import kotlinx.coroutines.flow.MutableSharedFlow
 
 class WeatherRepository(viewModel: ViewModel?) : BaseRepository(viewModel) {
@@ -27,6 +28,14 @@ class WeatherRepository(viewModel: ViewModel?) : BaseRepository(viewModel) {
         androidScope {
             callResult {
                 hold(call) {  main.getNowWeather("7d3e011abe9f333691a3e9bc88829c83",adcode) }
+            }
+        }
+    }
+
+    fun getWeatherQuality(adcode:String,call: MutableSharedFlow<KResult<WeatherQuality>>){
+        androidScope {
+            callResult {
+                hold(call) {  main.getWeatherQuality(adcode) }
             }
         }
     }

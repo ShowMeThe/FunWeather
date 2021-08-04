@@ -4,6 +4,7 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Rect
+import android.util.Log
 import android.view.View
 
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -69,11 +70,11 @@ class RecycleViewDivider(vararg  orientation: Int, val dividerHeight: Int = 1,
             val layoutParams = child.layoutParams as RecyclerView.LayoutParams
 
             val left = child.right + layoutParams.rightMargin
-            val right = left + dividerHeight/2
+            val right = left + dividerHeight/2f
             canvas.drawRect(left.toFloat(), top.toFloat(), right.toFloat(), bottom.toFloat(), mPaint)
 
             val left2 = child.left - layoutParams.leftMargin
-            val right2 = left2 - dividerHeight/2
+            val right2 = left2 - dividerHeight/2f
             canvas.drawRect(left2.toFloat(), top.toFloat(), right2.toFloat(), bottom.toFloat(), mPaint)
         }
     }
@@ -86,11 +87,11 @@ class RecycleViewDivider(vararg  orientation: Int, val dividerHeight: Int = 1,
             val child = parent.getChildAt(i)
             val layoutParams = child.layoutParams as RecyclerView.LayoutParams
             val top = child.bottom + layoutParams.bottomMargin
-            val bottom = top + dividerHeight/2
+            val bottom = top + dividerHeight/2f
             canvas.drawRect(left.toFloat(), top.toFloat(), right.toFloat(), bottom.toFloat(), mPaint)
 
             val top2 = child.top - layoutParams.topMargin
-            val bottom2 = top2 - dividerHeight/2
+            val bottom2 = top2 - dividerHeight/2f
             canvas.drawRect(left.toFloat(), top2.toFloat(), right.toFloat(), bottom2.toFloat(), mPaint)
         }
     }

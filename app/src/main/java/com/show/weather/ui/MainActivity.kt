@@ -3,10 +3,18 @@ package com.show.weather.ui
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.util.Log
+import android.webkit.WebHistoryItem
+import androidx.core.content.ContextCompat
+import androidx.databinding.ObservableArrayList
 import androidx.lifecycle.asLiveData
+import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.show.kclock.MILLIS_DAY
+import com.show.kcore.adapter.divider.RecycleViewDivider
 import com.show.kcore.base.BaseActivity
 import com.show.kcore.base.Transition
+import com.show.kcore.extras.display.dp
 import com.show.kcore.extras.gobal.read
 import com.show.kcore.extras.status.statusBar
 import com.show.kcore.extras.string.builder
@@ -17,8 +25,11 @@ import com.show.weather.const.StoreConstant
 import com.show.weather.databinding.ActivityMainBinding
 import com.show.weather.entity.Weather
 import com.show.weather.entity.WeatherForecast
+import com.show.weather.entity.WeatherQuality
 import com.show.weather.entity.toForecastItem
 import com.show.weather.location.Location
+import com.show.weather.ui.adapter.QualityAdapter
+import com.show.weather.ui.adapter.QualityItem
 import com.show.weather.ui.vm.MainViewModel
 import com.show.weather.utils.WeatherFilter
 
@@ -47,6 +58,30 @@ class MainActivity : BaseActivity<ActivityMainBinding, MainViewModel>() {
                     initData(this)
                 }
             }
+
+        viewModel.weatherQuality.asLiveData()
+            .read(this){
+                it?.apply {
+                    initQuality(this)
+                }
+            }
+
+    }
+
+    private fun initQuality(quality: WeatherQuality) {
+        val list = ObservableArrayList<QualityItem>()
+        val city = quality.result.heWeather5[0].aqi.city
+        list.add(QualityItem(city.pm25,R.drawable.ic_pm2_5,"PM2.5"))
+        list.add(QualityItem(city.pm10,R.drawable.ic_pm1_0,"PM1.0"))
+        list.add(QualityItem(city.qlty,R.drawable.ic_air_qu,"空气质量"))
+        val adapter = QualityAdapter(this@MainActivity,list)
+        binding {
+            rvQuality.adapter = adapter
+            rvQuality.layoutManager = GridLayoutManager(this@MainActivity,2)
+            rvQuality.addItemDecoration(RecycleViewDivider(RecyclerView.VERTICAL,
+                dividerColor = ContextCompat.getColor(this@MainActivity,R.color.colorPrimary),
+                dividerHeight = 0.5f.dp.toInt(),padding = 15f.dp))
+        }
     }
 
     override fun init(savedInstanceState: Bundle?) {
@@ -105,12 +140,17 @@ class MainActivity : BaseActivity<ActivityMainBinding, MainViewModel>() {
             }
             val adcode = it?.adCode ?: "110101"
             requestWeather(adcode)
+            requestWeatherOnce(it?.city?:"北京")
         }
     }
 
     private fun requestWeather(adcode: String) {
         viewModel.getNowWeather(adcode)
         viewModel.getForecastWeather(adcode)
+    }
+
+    private fun requestWeatherOnce(adcode: String) {
+        viewModel.getWeatherQuality(adcode)
     }
 
     private fun initView(weather: Weather) {

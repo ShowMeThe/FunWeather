@@ -6,4 +6,5 @@ object StoreConstant {
 
     const val REQUEST_LOCATION_ADDRESS = "REQUEST_LOCATION_ADDRESS"
 
+
 }
