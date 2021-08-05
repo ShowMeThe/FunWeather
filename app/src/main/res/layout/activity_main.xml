@@ -50,6 +50,7 @@
             >
 
             <com.google.android.material.appbar.AppBarLayout
+                android:id="@+id/appBar"
                 android:layout_width="match_parent"
                 android:layout_height="300dp"
                 android:elevation="0dp"
@@ -58,7 +59,7 @@
                 >
 
                 <com.google.android.material.appbar.CollapsingToolbarLayout
-                    app:layout_scrollFlags="scroll"
+                    app:layout_scrollFlags="scroll|exitUntilCollapsed"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent">
 
@@ -159,6 +160,36 @@
                         >
                     </com.show.weather.widget.WeatherForecastView>
 
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:id="@+id/sunContainer"
+                        android:orientation="horizontal"
+                        android:background="@drawable/shape_rect_card_bg"
+                        android:layout_width="match_parent"
+                        android:layout_height="100dp"
+                        android:layout_margin="15dp"
+                        android:elevation="0.5dp"
+                        app:layout_constraintTop_toBottomOf="@+id/forecast"
+                        >
+
+                        <com.show.weather.widget.SunriseView
+                            android:id="@+id/sun"
+                            android:layout_width="0dp"
+                            android:layout_marginStart="10dp"
+                            android:layout_marginEnd="2.5dp"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintEnd_toStartOf="@+id/moon"
+                            android:layout_height="match_parent"/>
+
+                        <com.show.weather.widget.SunriseView
+                            android:id="@+id/moon"
+                            android:layout_width="0dp"
+                            android:layout_marginStart="2.5dp"
+                            android:layout_marginEnd="10dp"
+                            app:layout_constraintStart_toEndOf="@+id/sun"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            android:layout_height="match_parent"/>
+
+                    </androidx.constraintlayout.widget.ConstraintLayout>
 
                     <androidx.recyclerview.widget.RecyclerView
                         android:id="@+id/rvQuality"
@@ -170,7 +201,7 @@
                         android:layout_marginTop="15dp"
                         android:elevation="0.5dp"
                         android:overScrollMode="never"
-                        app:layout_constraintTop_toBottomOf="@+id/forecast"
+                        app:layout_constraintTop_toBottomOf="@+id/sunContainer"
                         >
 
                     </androidx.recyclerview.widget.RecyclerView>

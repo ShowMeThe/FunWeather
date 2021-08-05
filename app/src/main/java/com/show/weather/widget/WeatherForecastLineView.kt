@@ -62,11 +62,11 @@ class WeatherForecastLineView @JvmOverloads constructor(
         mPoints.clear()
         val upMax = upperData.maxOrNull() ?: 0
         val upMin = upperData.minOrNull() ?: 0
-        val upDp = contentH / abs(upMax - upMin)
+        val upDp = contentH / abs((upMax - upMin).coerceAtLeast(1))
 
         val lowMax = lowerData.maxOrNull() ?: 0
         val lowMin = lowerData.minOrNull() ?: 0
-        val lowDp = contentH / abs(lowMax - lowMin)
+        val lowDp = contentH / abs(lowMax - lowMin).coerceAtLeast(1)
 
         upperData.forEachIndexed { index, value ->
 

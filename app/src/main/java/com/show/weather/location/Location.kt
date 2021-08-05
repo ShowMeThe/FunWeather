@@ -1,6 +1,7 @@
 package com.show.weather.location
 
 import android.util.ArrayMap
+import android.util.Log
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleObserver
 import androidx.lifecycle.LifecycleOwner
@@ -10,6 +11,7 @@ import com.amap.api.location.AMapLocationClient
 import com.amap.api.location.AMapLocationClientOption
 import com.amap.api.location.AMapLocationListener
 import com.show.kcore.base.AppContext
+import com.show.kcore.extras.log.Logger
 import com.show.kcore.rden.Stores
 import com.show.weather.const.StoreConstant
 
@@ -28,8 +30,8 @@ class Location {
     private fun init() {
         client = AMapLocationClient(AppContext.get().context.applicationContext)
         option = AMapLocationClientOption()
-        option.locationPurpose = AMapLocationClientOption.AMapLocationPurpose.Sport
-        option.locationMode = AMapLocationClientOption.AMapLocationMode.Battery_Saving
+        option.locationPurpose = AMapLocationClientOption.AMapLocationPurpose.SignIn
+        option.locationMode = AMapLocationClientOption.AMapLocationMode.Hight_Accuracy
         option.isGpsFirst = true
         option.isLocationCacheEnable = true
         option.isNeedAddress = true
@@ -43,7 +45,7 @@ class Location {
     private val listener = AMapLocationListener { location ->
         if(location?.errorCode == 0){
             client.stopLocation()
-            Stores.put(StoreConstant.REQUEST_LOCATION_ADDRESS,location.adCode)
+            Stores.put(StoreConstant.REQUEST_LOCATION_ADDRESS,location.city)
         }
         onChange.forEach {
             val key = it.key

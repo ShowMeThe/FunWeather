@@ -5,11 +5,14 @@ import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
 import android.webkit.WebHistoryItem
+import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.databinding.ObservableArrayList
 import androidx.lifecycle.asLiveData
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.amap.api.location.AMapLocation
+import com.google.android.material.appbar.AppBarLayout
 import com.show.kclock.MILLIS_DAY
 import com.show.kcore.adapter.divider.RecycleViewDivider
 import com.show.kcore.base.BaseActivity
@@ -23,10 +26,7 @@ import com.show.permission.PermissionFactory
 import com.show.weather.R
 import com.show.weather.const.StoreConstant
 import com.show.weather.databinding.ActivityMainBinding
-import com.show.weather.entity.Weather
-import com.show.weather.entity.WeatherForecast
-import com.show.weather.entity.WeatherQuality
-import com.show.weather.entity.toForecastItem
+import com.show.weather.entity.*
 import com.show.weather.location.Location
 import com.show.weather.ui.adapter.QualityAdapter
 import com.show.weather.ui.adapter.QualityItem
@@ -45,42 +45,46 @@ class MainActivity : BaseActivity<ActivityMainBinding, MainViewModel>() {
 
     override fun observerUI() {
 
-        viewModel.weather.asLiveData()
-            .read(this){
-                it?.apply {
-                    initView(this)
-                }
-            }
-
-        viewModel.weatherForecast.asLiveData()
+        viewModel.weatherQuality.asLiveData()
             .read(this) {
                 it?.apply {
-                    initData(this)
-                }
-            }
-
-        viewModel.weatherQuality.asLiveData()
-            .read(this){
-                it?.apply {
+                    val weather5 = this.result.heWeather5[0]
+                    initView(weather5.now, weather5.basic.update.loc)
+                    initData(weather5.dailyForecast)
+                    initSun(weather5.dailyForecast[0].astro)
                     initQuality(this)
                 }
             }
 
     }
 
+    private fun initSun(astro: Astro) {
+        binding {
+            sun.updateSunRise(astro.sr,astro.ss,"日出时间",R.drawable.sun)
+            moon.updateSunRise(astro.mr,astro.ms,"月出时间",R.drawable.moon)
+        }
+    }
+
     private fun initQuality(quality: WeatherQuality) {
         val list = ObservableArrayList<QualityItem>()
         val city = quality.result.heWeather5[0].aqi.city
-        list.add(QualityItem(city.pm25,R.drawable.ic_pm2_5,"PM2.5"))
-        list.add(QualityItem(city.pm10,R.drawable.ic_pm1_0,"PM1.0"))
-        list.add(QualityItem(city.qlty,R.drawable.ic_air_qu,"空气质量"))
-        val adapter = QualityAdapter(this@MainActivity,list)
+        list.add(QualityItem("${city.pm25}μg/m^3", R.drawable.ic_pm2_5, "PM2.5"))
+        list.add(QualityItem("${city.pm10}μg/m^3", R.drawable.ic_pm1_0, "PM1.0"))
+        list.add(QualityItem(city.qlty, R.drawable.ic_air_qu, "空气质量"))
+        list.add(QualityItem("${city.o3}μg/m^3", R.drawable.ic_o3, "O3"))
+        list.add(QualityItem("${city.co}mg/m^3", R.drawable.ic_co, "CO"))
+        list.add(QualityItem("${city.so2}μg/m^3", R.drawable.ic_so2, "SO2"))
+        val adapter = QualityAdapter(this@MainActivity, list)
         binding {
             rvQuality.adapter = adapter
-            rvQuality.layoutManager = GridLayoutManager(this@MainActivity,2)
-            rvQuality.addItemDecoration(RecycleViewDivider(RecyclerView.VERTICAL,
-                dividerColor = ContextCompat.getColor(this@MainActivity,R.color.colorPrimary),
-                dividerHeight = 0.5f.dp.toInt(),padding = 15f.dp))
+            rvQuality.layoutManager = GridLayoutManager(this@MainActivity, 2)
+            rvQuality.addItemDecoration(
+                RecycleViewDivider(
+                    RecyclerView.VERTICAL,
+                    dividerColor = ContextCompat.getColor(this@MainActivity, R.color.colorPrimary),
+                    dividerHeight = 0.5f.dp.toInt(), padding = 15f.dp
+                )
+            )
         }
     }
 
@@ -120,10 +124,12 @@ class MainActivity : BaseActivity<ActivityMainBinding, MainViewModel>() {
                             /**
                              * 跳转系统
                              */
+                            Toast.makeText(this, "跳转系统界面，打开定位权限", Toast.LENGTH_SHORT).show()
                         } else {
                             /**
                              * toast
                              */
+                            Toast.makeText(this, "无法获取定位", Toast.LENGTH_SHORT).show()
                         }
                     }
                 }
@@ -138,59 +144,50 @@ class MainActivity : BaseActivity<ActivityMainBinding, MainViewModel>() {
                 val address = it?.city.builder?.append("-${it?.district}") ?: "无法获取"
                 tvAddress.text = address
             }
-            val adcode = it?.adCode ?: "110101"
-            requestWeather(adcode)
-            requestWeatherOnce(it?.city?:"北京")
+            it?.apply {
+                requestWeather(city ?: "北京")
+            }
         }
     }
 
-    private fun requestWeather(adcode: String) {
-        viewModel.getNowWeather(adcode)
-        viewModel.getForecastWeather(adcode)
+    private fun requestWeather(it: String) {
+        viewModel.getWeatherQuality(it)
     }
 
-    private fun requestWeatherOnce(adcode: String) {
-        viewModel.getWeatherQuality(adcode)
-    }
-
-    private fun initView(weather: Weather) {
+    private fun initView(weather: Now, reportTime: String) {
         binding {
             refresh.isRefreshing = false
 
-            val today = weather.lives[0]
-            today.apply {
-                tvWeather.text = this.weather
-                tvHi.text = humidity
-                tvWind.text = "$winddirection -- ${windpower}"
-                tvTemp.text = temperature.builder?.append("°C")
-            }
+            tvWeather.text = weather.cond.txt
+            tvHi.text = weather.hum
+            tvWind.text = "${weather.wind.spd} -- ${weather.wind.dir}"
+            tvTemp.text = weather.tmp.builder?.append("°C")
 
             binding.weather.apply {
-                updateReportTime(today.reporttime)
-                resetIcons(*WeatherFilter.getWeatherByName(today.weather))
+                updateReportTime(reportTime)
+                resetIcons(*WeatherFilter.getWeatherByName(weather.cond.txt))
             }
         }
     }
 
-    private fun initData(forecast: WeatherForecast) {
+    private fun initData(forecast: List<DailyForecast>) {
         binding {
-
-            val casts = forecast.forecasts[0].casts
-            binding.forecast.updateForecast(casts.map {
+            binding.forecast.updateForecast(forecast.map {
                 it.toForecastItem()
             })
-            binding.forecast.updateTemp(casts)
+            binding.forecast.updateTemp(forecast)
         }
     }
 
     override fun initListener() {
-
         binding {
+            appBar.addOnOffsetChangedListener(AppBarLayout.OnOffsetChangedListener { _, verticalOffset ->
+                refresh.isEnabled = verticalOffset >= 0
+            })
+
 
             refresh.setOnRefreshListener {
-                requestWeather(
-                    Stores.getString(StoreConstant.REQUEST_LOCATION_ADDRESS, "110101") ?: "110101"
-                )
+                requestWeather(Stores.getString(StoreConstant.REQUEST_LOCATION_ADDRESS, "") ?: "北京")
             }
 
 

@@ -1,12 +1,8 @@
 package com.show.weather.widget
 
 import android.content.Context
-import android.graphics.Color
 import android.util.AttributeSet
-import android.view.ViewGroup
-import android.widget.GridLayout
 import android.widget.LinearLayout
-import androidx.core.view.marginTop
 import androidx.databinding.ObservableArrayList
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -14,7 +10,7 @@ import com.show.kcore.adapter.DataBindBaseAdapter
 import com.show.kcore.extras.display.dp
 import com.show.weather.R
 import com.show.weather.databinding.ItemForecastBinding
-import com.show.weather.entity.Cast
+import com.show.weather.entity.DailyForecast
 import com.show.weather.entity.ForecastItem
 
 class WeatherForecastView @JvmOverloads constructor(
@@ -27,7 +23,7 @@ class WeatherForecastView @JvmOverloads constructor(
         overScrollMode = OVER_SCROLL_NEVER
     } }
     private val forecasts = ObservableArrayList<ForecastItem>()
-    private val layoutManager by lazy { GridLayoutManager(context, 4) }
+    private val layoutManager by lazy { GridLayoutManager(context, 7) }
     private val adapter by lazy { ForecastAdapter(context, forecasts) }
 
 
@@ -63,9 +59,13 @@ class WeatherForecastView @JvmOverloads constructor(
         forecasts.addAll(list)
     }
 
-    fun updateTemp(list : List<Cast>){
-        val up = list.map { it.daytemp.toInt() }
-        val low = list.map { it.nighttemp.toInt() }
+    fun updateTemp(list : List<DailyForecast>){
+        val up = ArrayList<Int>()
+        val low = ArrayList<Int>()
+        list.forEach {
+            up.add(it.tmp.max.toInt())
+            low.add(it.tmp.min.toInt())
+        }
         lineView.updateData(up,low)
     }
 

@@ -12,7 +12,7 @@ import java.util.*
 
 object WeatherIcon {
 
-    private val instant = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.CHINA)
+    private val instant = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.CHINA)
 
     private val calendar by lazy {
         Calendar.getInstance()

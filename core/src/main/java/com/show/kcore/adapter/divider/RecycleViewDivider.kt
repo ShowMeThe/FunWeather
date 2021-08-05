@@ -65,7 +65,7 @@ class RecycleViewDivider(vararg  orientation: Int, val dividerHeight: Int = 1,
         val top = parent.paddingTop + padding/2f
         val bottom = parent.measuredHeight - parent.paddingBottom - padding/2f
         val childSize = parent.childCount
-        for (i in 0 until childSize ) {
+        for (i in 0 until childSize) {
             val child = parent.getChildAt(i)
             val layoutParams = child.layoutParams as RecyclerView.LayoutParams
 
@@ -81,9 +81,9 @@ class RecycleViewDivider(vararg  orientation: Int, val dividerHeight: Int = 1,
 
     private fun drawHalfVertical(canvas: Canvas, parent: RecyclerView) {
         val left = parent.paddingLeft + padding/2f
-        val right = parent.measuredWidth - parent.paddingRight - + padding/2f
+        val right = parent.measuredWidth - parent.paddingRight - padding/2f
         val childSize = parent.childCount
-        for (i in 0 until childSize - 1  ) {
+        for (i in 0 until childSize) {
             val child = parent.getChildAt(i)
             val layoutParams = child.layoutParams as RecyclerView.LayoutParams
             val top = child.bottom + layoutParams.bottomMargin
@@ -100,7 +100,7 @@ class RecycleViewDivider(vararg  orientation: Int, val dividerHeight: Int = 1,
         val top = parent.paddingTop + padding
         val bottom = parent.measuredHeight - parent.paddingBottom - padding
         val childSize = parent.childCount
-        for (i in 0 until childSize ) {
+        for (i in 0 until childSize  - 1) {
             val child = parent.getChildAt(i)
             val layoutParams = child.layoutParams as RecyclerView.LayoutParams
             val left = child.right + layoutParams.rightMargin

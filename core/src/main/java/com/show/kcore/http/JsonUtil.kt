@@ -35,7 +35,17 @@ inline fun <reified T> String.jsonToList(token: TypeToken<ArrayList<T>>): ArrayL
 
 
 inline fun <reified T> T.clazzToJson(): String {
-    return moshi.adapter<T>(T::class.java).toJson(this)
+    return moshi.adapter<T>(T::class.java)
+        .lenient()
+        .nullSafe()
+        .toJson(this)
+}
+
+inline fun <reified T> T.clazzToJsonValue(): Any? {
+    return moshi.adapter<T>(T::class.java)
+        .lenient()
+        .nullSafe()
+        .toJsonValue(this)
 }
 
 inline fun <reified T> String.jsonToClazz(): T? {

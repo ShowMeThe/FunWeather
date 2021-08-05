@@ -19,12 +19,12 @@ private val calendar by lazy {
     Calendar.getInstance()
 }
 
-fun Cast.toForecastItem(): ForecastItem {
+fun DailyForecast.toForecastItem(): ForecastItem {
     calendar.timeInMillis = System.currentTimeMillis()
     val todayDay = calendar[Calendar.DAY_OF_MONTH]
     val todayMonth = calendar[Calendar.MONTH] + 1
 
-    val time = date.split("-")
+    val time = date.substringBefore(" ").split("-")
     val month = time[1].toInt()
     val day = time[2].toInt()
     val dateIn = if (todayDay == day && todayMonth == month) {
@@ -46,5 +46,5 @@ fun Cast.toForecastItem(): ForecastItem {
         }
     }
 
-    return ForecastItem(dateIn, dateInWeak,ContextCompat.getDrawable(AppContext.getContext(),getWeatherIconByName(dayweather)))
+    return ForecastItem(dateIn, dateInWeak,ContextCompat.getDrawable(AppContext.getContext(),getWeatherIconByName(cond.txtD)))
 }

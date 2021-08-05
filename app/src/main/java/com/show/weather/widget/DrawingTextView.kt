@@ -5,6 +5,7 @@ import android.content.Context
 import android.graphics.*
 import android.text.TextPaint
 import android.util.AttributeSet
+import android.util.Log
 import android.view.View
 import androidx.interpolator.view.animation.FastOutLinearInInterpolator
 import com.show.kcore.extras.display.dp
@@ -102,9 +103,6 @@ class DrawingTextView @JvmOverloads constructor(
 
         mSumLength = mTextMeasure.length
         var length = mSumLength * mProgress
-        mTextMeasure.getSegment(0f, length, mDestRectPath, true)
-        canvas.drawPath(mDestRectPath, mPaint)
-
         mTextMeasure.getSegment(0f, length, mDestRectPath, true)
         canvas.drawPath(mDestRectPath, mPaint)
 

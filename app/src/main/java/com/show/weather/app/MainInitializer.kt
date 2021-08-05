@@ -27,7 +27,7 @@ class MainInitializer : Initializer<Boolean> {
 
         context.http{
             config {
-                baseUrl = "https://restapi.amap.com/"
+                baseUrl = "https://way.jd.com/"
             }
         }
 

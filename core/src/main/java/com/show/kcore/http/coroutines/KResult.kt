@@ -3,6 +3,7 @@ package com.show.kcore.http.coroutines
 import android.util.Log
 import androidx.annotation.Keep
 import androidx.lifecycle.MutableLiveData
+import com.squareup.moshi.JsonClass
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
