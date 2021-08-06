@@ -30,9 +30,9 @@ class Location {
     private fun init() {
         client = AMapLocationClient(AppContext.get().context.applicationContext)
         option = AMapLocationClientOption()
-        option.locationPurpose = AMapLocationClientOption.AMapLocationPurpose.SignIn
+        option.locationPurpose = AMapLocationClientOption.AMapLocationPurpose.Sport
         option.locationMode = AMapLocationClientOption.AMapLocationMode.Hight_Accuracy
-        option.isGpsFirst = true
+        option.isGpsFirst = false
         option.isLocationCacheEnable = true
         option.isNeedAddress = true
         option.isOnceLocation = true

@@ -127,8 +127,8 @@ class SunriseView @JvmOverloads constructor(
 
 
         mBitmap?.apply {
-            val x = centerX + cos(Math.toRadians(mProgressRad + 180)) * radius
-            val y = centerY + sin(Math.toRadians(mProgressRad + 180)) * radius
+            val x = centerX + cos(Math.toRadians(mProgressRad)) * radius
+            val y = centerY + sin(Math.toRadians(mProgressRad)) * radius
             destRect.set((x - mBSize).toFloat(), (y - mBSize).toFloat(), (x + mBSize).toFloat(),
                 (y + mBSize).toFloat()
             )
