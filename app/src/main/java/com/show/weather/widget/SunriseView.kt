@@ -80,13 +80,11 @@ class SunriseView @JvmOverloads constructor(
         val ends = mDown.split(":")
         val endTime = ends[0].toInt() * 60 + ends[1].toInt()
 
-        if(startTime > endTime){
+        val nowTime = instant[Calendar.HOUR_OF_DAY] * 60 + instant[Calendar.MINUTE] - startTime
 
-        }
-
-        val nowTime = instant[Calendar.HOUR_OF_DAY] * 60 + instant[Calendar.MINUTE]
-
-        mProgressRad = nowTime / (endTime - startTime).toFloat() * -180.0 // 角度
+        mProgressRad = (nowTime / (endTime - startTime).toFloat() * 180.0  - 180.0)
+            .coerceAtMost(0.0)
+            .coerceAtLeast(-180.0) // 角度
 
     }
 

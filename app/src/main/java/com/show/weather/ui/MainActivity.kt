@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
+import android.view.View
 import android.webkit.WebHistoryItem
 import android.widget.Toast
 import androidx.core.content.ContextCompat
@@ -18,7 +19,9 @@ import com.show.kcore.adapter.divider.RecycleViewDivider
 import com.show.kcore.base.BaseActivity
 import com.show.kcore.base.Transition
 import com.show.kcore.extras.display.dp
+import com.show.kcore.extras.gobal.gone
 import com.show.kcore.extras.gobal.read
+import com.show.kcore.extras.gobal.visible
 import com.show.kcore.extras.status.statusBar
 import com.show.kcore.extras.string.builder
 import com.show.kcore.rden.Stores
@@ -162,6 +165,12 @@ class MainActivity : BaseActivity<ActivityMainBinding, MainViewModel>() {
             tvHi.text = weather.hum
             tvWind.text = "${weather.wind.spd} -- ${weather.wind.dir}"
             tvTemp.text = weather.tmp.builder?.append("°C")
+
+            if(WeatherFilter.getWeatherRain(weather.cond.txt)){
+                rainView.visible()
+            }else{
+                rainView.gone()
+            }
 
             binding.weather.apply {
                 updateReportTime(reportTime)

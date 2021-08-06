@@ -28,4 +28,12 @@ object WeatherFilter {
             else -> R.drawable.ic_sun
         }
     }
+
+    fun getWeatherRain(weather: String): Boolean {
+        return when (weather) {
+            "暴雨","大暴雨","特大暴雨","小雨", "中雨","大雨" -> true
+            else -> false
+        }
+    }
+
 }
