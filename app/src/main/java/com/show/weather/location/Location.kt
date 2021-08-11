@@ -2,10 +2,7 @@ package com.show.weather.location
 
 import android.util.ArrayMap
 import android.util.Log
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleObserver
-import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.OnLifecycleEvent
+import androidx.lifecycle.*
 import com.amap.api.location.AMapLocation
 import com.amap.api.location.AMapLocationClient
 import com.amap.api.location.AMapLocationClientOption
@@ -20,6 +17,7 @@ class Location {
     companion object {
         private val instant by lazy { Location() }
         fun get() = instant
+        private const val TAG = "Location"
     }
 
     private var isInit = false
@@ -43,19 +41,34 @@ class Location {
 
 
     private val listener = AMapLocationListener { location ->
-        if(location?.errorCode == 0){
+        if (location?.errorCode == 0) {
             client.stopLocation()
-            Stores.put(StoreConstant.REQUEST_LOCATION_ADDRESS,location.city)
+            Stores.put(StoreConstant.REQUEST_LOCATION_ADDRESS, location.city)
         }
-        onChange.forEach {
-            val key = it.key
-            val value = it.value
+        Logger.dLog(TAG, "stopLocation and result is OK")
+        val it = onChange.iterator()
+        while (it.hasNext()) {
+            val change = it.next()
+            val key = change.key
+            val value = change.value
             if (key.lifecycleOwner?.lifecycle?.currentState != Lifecycle.State.DESTROYED) {
                 value?.invoke(location)
+            } else {
+                it.remove()
             }
         }
-
+        singleOnChange?.invoke(location)
     }
+
+    private var singleOnChange: ((location: AMapLocation?) -> Unit)? = null
+    fun getFinalLocation(onChange: ((location: AMapLocation?) -> Unit)? = null) {
+        if (!isInit) {
+            init()
+        }
+        client.startLocation()
+        singleOnChange = onChange
+    }
+
 
     private val onChange: ArrayMap<LifeWrapper, ((location: AMapLocation?) -> Unit)> = ArrayMap()
     fun getFinalLocation(
@@ -66,20 +79,19 @@ class Location {
             init()
         }
         client.startLocation()
+        Logger.dLog(TAG, "startLocation")
         this.onChange[LifeWrapper(lifecycleOwner)] = onChange
     }
 
-    private inner class LifeWrapper(var lifecycleOwner: LifecycleOwner?) : LifecycleObserver {
+    private inner class LifeWrapper(var lifecycleOwner: LifecycleOwner?) {
 
         init {
-            lifecycleOwner?.lifecycle?.addObserver(this)
-        }
-
-        @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
-        fun onDestroy() {
-            lifecycleOwner?.lifecycle?.removeObserver(this)
-            onChange.remove(this@LifeWrapper)
-            lifecycleOwner = null
+            lifecycleOwner?.lifecycle?.addObserver(LifecycleEventObserver{ ource, event->
+                if(event == Lifecycle.Event.ON_DESTROY){
+                    onChange.remove(this@LifeWrapper)
+                    Log.e("222222","ON_DESTROY ${this}")
+                }
+            })
         }
     }
 
