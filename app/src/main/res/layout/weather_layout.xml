@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="150dp"
-    android:layout_height="80dp"
-    android:paddingStart="10dp"
+    android:layout_height="110dp"
+    android:paddingStart="4dp"
     android:paddingEnd="2dp"
     >
 
@@ -11,7 +11,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textColor="@color/white"
-        android:textSize="15dp"
+        android:textSize="18dp"
         />
 
     <TextView
@@ -20,7 +20,7 @@
         android:layout_height="wrap_content"
         android:textColor="@color/white"
         android:layout_below="@+id/tvDate"
-        android:textSize="15dp"
+        android:textSize="18dp"
         />
 
     <TextClock
@@ -33,6 +33,6 @@
         android:format24Hour="HH:mm"
         android:gravity="center"
         android:textColor="@color/white"
-        android:textSize="24dp" />
+        android:textSize="35dp" />
 
 </RelativeLayout>
