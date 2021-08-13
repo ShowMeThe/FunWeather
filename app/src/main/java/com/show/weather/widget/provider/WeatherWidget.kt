@@ -33,22 +33,17 @@ import java.io.Closeable
 import java.util.*
 import kotlin.coroutines.CoroutineContext
 
-class WeatherWidget : AppWidgetProvider() {
+class WeatherWidget : AppWidgetProvider(),LifecycleOwner {
 
     companion object {
         private const val TAG = "WeatherWidget"
     }
 
+    private val registry by lazy { LifecycleRegistry(this) }
     private val main: Main by single()
 
-    private val result = MutableSharedFlow<KResult<WeatherQuality>>(replay = 1).apply {
-        Stores.getObject<WeatherQuality>(StoreConstant.REQUEST_WEATHER, null)?.also {
-            tryEmit(SuccessResult.create(it))
-        }
-    }
 
     private val scope = WidgetCoroutineScope()
-
     private val calendar by lazy { Calendar.getInstance(Locale.getDefault()) }
 
     private val updateTime by lazy {
@@ -78,6 +73,7 @@ class WeatherWidget : AppWidgetProvider() {
         appWidgetManager: AppWidgetManager?,
         appWidgetIds: IntArray?
     ) {
+        registry.handleLifecycleEvent(Lifecycle.Event.ON_RESUME)
         if (receiver == null) {
             receiver = TimeReceiver()
             context.applicationContext
@@ -112,8 +108,8 @@ class WeatherWidget : AppWidgetProvider() {
         }
 
         scope.launch(Dispatchers.Main) {
-            result.collect {
-                it.response?.apply {
+            Stores.getLive<WeatherQuality>(this@WeatherWidget,StoreConstant.REQUEST_WEATHER){
+                it?.apply {
                     val now = this.result.heWeather5[0].now
                     views.setTextViewText(R.id.tvWeather, "${now.cond.txt},${now.tmp}°C")
 
@@ -139,7 +135,7 @@ class WeatherWidget : AppWidgetProvider() {
     private fun getWeather(city: String) {
         val closeable = Coroutines(scope)
         closeable.callResult {
-            hold(result) { main.getWeatherQuality(city) }
+            hold { main.getWeatherQuality(city) }
                 .success {
                     Stores.putObject(StoreConstant.REQUEST_WEATHER, this.response)
                 }
@@ -162,5 +158,7 @@ class WeatherWidget : AppWidgetProvider() {
             get() = SupervisorJob() + newFixedThreadPoolContext(2, "Weather")
 
     }
+
+    override fun getLifecycle(): Lifecycle = registry
 
 }
