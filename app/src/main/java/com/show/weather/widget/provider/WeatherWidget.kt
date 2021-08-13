@@ -1,5 +1,6 @@
 package com.show.weather.widget.provider
 
+import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
 import android.content.BroadcastReceiver
@@ -25,6 +26,8 @@ import com.show.weather.api.Main
 import com.show.weather.const.StoreConstant
 import com.show.weather.entity.WeatherQuality
 import com.show.weather.location.Location
+import com.show.weather.ui.MainActivity
+import com.show.weather.ui.SplashActivity
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -58,6 +61,8 @@ class WeatherWidget : AppWidgetProvider(),LifecycleOwner {
         super.onEnabled(context)
     }
 
+
+
     override fun onDeleted(context: Context?, appWidgetIds: IntArray?) {
         super.onDeleted(context, appWidgetIds)
         kotlin.runCatching {
@@ -83,6 +88,10 @@ class WeatherWidget : AppWidgetProvider(),LifecycleOwner {
         }
 
         val views = RemoteViews(context.packageName, R.layout.weather_layout)
+        val pendingIntent = PendingIntent.getActivity(context,1000,
+            Intent(context,SplashActivity::class.java),PendingIntent.FLAG_UPDATE_CURRENT
+        )
+        views.setOnClickPendingIntent(R.id.mainContainer,pendingIntent)
         views.setTextViewText(R.id.tvWeather, "")
 
         scope.launch(Dispatchers.Main.immediate) {
