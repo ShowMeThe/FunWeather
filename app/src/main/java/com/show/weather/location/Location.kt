@@ -39,6 +39,7 @@ class Location {
         isInit = true
     }
 
+    var isLocating = false
 
     private val listener = AMapLocationListener { location ->
         if (location?.errorCode == 0) {
@@ -57,6 +58,7 @@ class Location {
                 it.remove()
             }
         }
+        Logger.dLog(TAG, "startLocation singleOnChange = $singleOnChange")
         singleOnChange?.invoke(location)
     }
 
@@ -66,6 +68,7 @@ class Location {
             init()
         }
         client.startLocation()
+        Logger.dLog(TAG, "startLocation")
         singleOnChange = onChange
     }
 
@@ -89,7 +92,7 @@ class Location {
             lifecycleOwner?.lifecycle?.addObserver(LifecycleEventObserver{ ource, event->
                 if(event == Lifecycle.Event.ON_DESTROY){
                     onChange.remove(this@LifeWrapper)
-                    Log.e("222222","ON_DESTROY ${this}")
+
                 }
             })
         }

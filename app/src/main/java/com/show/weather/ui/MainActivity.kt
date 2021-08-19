@@ -106,7 +106,8 @@ class MainActivity : BaseActivity<ActivityMainBinding, MainViewModel>() {
         val permissions = arrayOf(
             Manifest.permission.ACCESS_COARSE_LOCATION,
             Manifest.permission.READ_EXTERNAL_STORAGE,
-            Manifest.permission.ACCESS_FINE_LOCATION
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_BACKGROUND_LOCATION
         )
         val requestTime = Stores.getLong(StoreConstant.REQUEST_LOCATION, 0L)
         if (checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION)

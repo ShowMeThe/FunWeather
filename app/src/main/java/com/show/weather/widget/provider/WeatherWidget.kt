@@ -1,6 +1,8 @@
 package com.show.weather.widget.provider
 
+import android.app.AlarmManager
 import android.app.PendingIntent
+import android.app.Service
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
 import android.content.BroadcastReceiver
@@ -15,6 +17,9 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
 import com.show.kInject.core.ext.single
+import com.show.kclock.dateTime
+import com.show.kclock.format
+import com.show.kclock.yyyy_MM_dd_HHmmss
 import com.show.kcore.extras.log.Logger
 import com.show.kcore.http.coroutines.Coroutines
 import com.show.kcore.http.coroutines.KResult
@@ -28,6 +33,7 @@ import com.show.weather.entity.WeatherQuality
 import com.show.weather.location.Location
 import com.show.weather.ui.MainActivity
 import com.show.weather.ui.SplashActivity
+import com.show.weather.utils.WorkJob
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -36,10 +42,12 @@ import java.io.Closeable
 import java.util.*
 import kotlin.coroutines.CoroutineContext
 
-class WeatherWidget : AppWidgetProvider(),LifecycleOwner {
+class WeatherWidget : AppWidgetProvider(), LifecycleOwner {
 
     companion object {
         private const val TAG = "WeatherWidget"
+
+        const val ACTION_REFRESH = "WeatherWidget.REFRESH"
     }
 
     private val registry by lazy { LifecycleRegistry(this) }
@@ -55,18 +63,35 @@ class WeatherWidget : AppWidgetProvider(),LifecycleOwner {
         }
     }
 
+    private var launchOnce = false
+
     private var receiver: TimeReceiver? = null
+    private var refreshReceiver: RefreshReceiver? = null
+
+    private val responseFlow = MutableSharedFlow<KResult<WeatherQuality>>(replay = 1).apply {
+        Stores.getObject<WeatherQuality>(StoreConstant.REQUEST_WEATHER, null)?.apply {
+            tryEmit(SuccessResult.create(this))
+        }
+
+    }
 
     override fun onEnabled(context: Context?) {
         super.onEnabled(context)
     }
 
 
-
     override fun onDeleted(context: Context?, appWidgetIds: IntArray?) {
         super.onDeleted(context, appWidgetIds)
+        Logger.dLog(TAG, "onDeleted")
         kotlin.runCatching {
             scope.cancel()
+            WorkJob.getManager().cancel()
+            if (receiver != null) {
+                context?.unregisterReceiver(receiver)
+            }
+            if (refreshReceiver != null) {
+                context?.unregisterReceiver(refreshReceiver)
+            }
         }.onFailure {
             it.printStackTrace()
         }
@@ -78,21 +103,37 @@ class WeatherWidget : AppWidgetProvider(),LifecycleOwner {
         appWidgetManager: AppWidgetManager?,
         appWidgetIds: IntArray?
     ) {
+        Logger.dLog(TAG, "onUpdate = $context")
         registry.handleLifecycleEvent(Lifecycle.Event.ON_RESUME)
+        if (launchOnce) {
+            Logger.dLog(TAG, "launchOnce = true")
+            return
+        }
         if (receiver == null) {
             receiver = TimeReceiver()
             context.applicationContext
                 .registerReceiver(receiver, IntentFilter().apply {
                     addAction(ACTION_TIME_TICK)
                 })
+            refreshReceiver = RefreshReceiver()
+            context.applicationContext
+                .registerReceiver(refreshReceiver, IntentFilter().apply {
+                    addAction(ACTION_REFRESH)
+                })
+            WorkJob.getManager().runJob()
         }
 
         val views = RemoteViews(context.packageName, R.layout.weather_layout)
-        val pendingIntent = PendingIntent.getActivity(context,1000,
-            Intent(context,SplashActivity::class.java),PendingIntent.FLAG_UPDATE_CURRENT
+        val pendingIntent = PendingIntent.getActivity(
+            context, 1000,
+            Intent(context, SplashActivity::class.java), PendingIntent.FLAG_UPDATE_CURRENT
         )
-        views.setOnClickPendingIntent(R.id.mainContainer,pendingIntent)
+        views.setOnClickPendingIntent(R.id.mainContainer, pendingIntent)
         views.setTextViewText(R.id.tvWeather, "")
+
+        scope.launch(Dispatchers.Main) {
+            requestLocation()
+        }
 
         scope.launch(Dispatchers.Main.immediate) {
             updateTime.collect {
@@ -117,8 +158,10 @@ class WeatherWidget : AppWidgetProvider(),LifecycleOwner {
         }
 
         scope.launch(Dispatchers.Main) {
-            Stores.getLive<WeatherQuality>(this@WeatherWidget,StoreConstant.REQUEST_WEATHER){
-                it?.apply {
+            responseFlow.collect {
+                it.response?.apply {
+                    Logger.dLog(TAG, "onUpdate getLive = $appWidgetIds")
+
                     val now = this.result.heWeather5[0].now
                     views.setTextViewText(R.id.tvWeather, "${now.cond.txt},${now.tmp}°C")
 
@@ -128,12 +171,10 @@ class WeatherWidget : AppWidgetProvider(),LifecycleOwner {
             }
         }
 
-        scope.launch(Dispatchers.Main) {
-            requestLocation()
-        }
     }
 
     private fun requestLocation() {
+        Logger.dLog(TAG, "requestLocation")
         Location.get().getFinalLocation {
             it?.apply {
                 getWeather(city ?: "北京")
@@ -144,9 +185,10 @@ class WeatherWidget : AppWidgetProvider(),LifecycleOwner {
     private fun getWeather(city: String) {
         val closeable = Coroutines(scope)
         closeable.callResult {
-            hold { main.getWeatherQuality(city) }
+            hold(responseFlow) { main.getWeatherQuality(city) }
                 .success {
                     Stores.putObject(StoreConstant.REQUEST_WEATHER, this.response)
+                    response
                 }
         }
     }
@@ -156,6 +198,15 @@ class WeatherWidget : AppWidgetProvider(),LifecycleOwner {
         override fun onReceive(context: Context?, intent: Intent) {
             if (intent.action == ACTION_TIME_TICK) {
                 updateTime.tryEmit(System.currentTimeMillis())
+            }
+        }
+    }
+
+    inner class RefreshReceiver : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent) {
+            if (intent.action == ACTION_REFRESH) {
+                Logger.dLog(TAG, "RefreshReceiver = ${intent.action}")
+                requestLocation()
             }
         }
     }
