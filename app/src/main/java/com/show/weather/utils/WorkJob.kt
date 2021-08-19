@@ -17,7 +17,7 @@ class WorkJob {
     }
 
     fun runJob() {
-        val periodicWorkRequest = PeriodicWorkRequestBuilder<BackJobWork>(15, TimeUnit.MINUTES)
+        val periodicWorkRequest = PeriodicWorkRequestBuilder<BackJobWork>(30, TimeUnit.MINUTES)
             .setConstraints(Constraints.Builder()
                 .setRequiresBatteryNotLow(true)
                 .setRequiresStorageNotLow(false)
