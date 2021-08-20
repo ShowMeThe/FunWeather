@@ -62,6 +62,10 @@ class WeatherWidget : AppWidgetProvider() {
         client.onDeleted(context,appWidgetIds)
     }
 
+    override fun onDisabled(context: Context?) {
+        super.onDisabled(context)
+        client.onDisabled(context)
+    }
 
     override fun onUpdate(
         context: Context,

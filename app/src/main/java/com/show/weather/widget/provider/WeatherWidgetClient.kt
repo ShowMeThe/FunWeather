@@ -29,14 +29,17 @@ import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.collect
 import java.util.*
+import kotlin.collections.ArrayList
 import kotlin.coroutines.CoroutineContext
 
 
-interface WeatherWidgetClientImp{
+interface WeatherWidgetClientImp {
 
     fun onEnabled(context: Context?)
 
     fun onDeleted(context: Context?, appWidgetIds: IntArray?)
+
+    fun onDisabled(context: Context?)
 
     fun onUpdate(context: Context, appWidgetManager: AppWidgetManager?, appWidgetIds: IntArray)
 
@@ -44,7 +47,7 @@ interface WeatherWidgetClientImp{
 
 class WeatherWidgetClient : WeatherWidgetClientImp, LifecycleOwner {
 
-    companion object{
+    companion object {
         private const val TAG = "WeatherWidgetClient"
         private val singleInstant by lazy { WeatherWidgetClient() }
         fun getClient() = singleInstant
@@ -62,14 +65,17 @@ class WeatherWidgetClient : WeatherWidgetClientImp, LifecycleOwner {
 
     private var receiver: TimeReceiver? = null
     private var refreshReceiver: RefreshReceiver? = null
+    private val appWidgetIdList = ArrayList<Int>()
 
-    private val responseFlow by lazy { MutableSharedFlow<KResult<WeatherQuality>>(replay = 1).apply {
-        Stores.getObject<WeatherQuality>(StoreConstant.REQUEST_WEATHER, null)?.also { it ->
-            Logger.dLog(TAG,"tryEmit")
-            tryEmit(SuccessResult.create(it))
+    private val responseFlow by lazy {
+        MutableSharedFlow<KResult<WeatherQuality>>(replay = 1).apply {
+            Stores.getObject<WeatherQuality>(StoreConstant.REQUEST_WEATHER, null)?.also { it ->
+                Logger.dLog(TAG, "tryEmit")
+                tryEmit(SuccessResult.create(it))
+            }
+
         }
-
-    } }
+    }
 
     private val updateTime by lazy {
         MutableSharedFlow<Long>(replay = 1).apply {
@@ -82,23 +88,40 @@ class WeatherWidgetClient : WeatherWidgetClientImp, LifecycleOwner {
     }
 
     override fun onDeleted(context: Context?, appWidgetIds: IntArray?) {
-        Logger.dLog(TAG, "onDeleted")
-        kotlin.runCatching {
-            registry.handleLifecycleEvent(Lifecycle.Event.ON_DESTROY)
-            scope.cancel()
-            WorkJob.getManager().cancel()
-        }.onFailure {
-            it.printStackTrace()
+        appWidgetIds?.forEach {
+            appWidgetIdList.remove(it)
+        }
+        if(appWidgetIdList.isEmpty()){
+            Logger.dLog(TAG,"close all job")
+            kotlin.runCatching {
+                registry.handleLifecycleEvent(Lifecycle.Event.ON_DESTROY)
+                scope.cancel()
+                WorkJob.getManager().cancel()
+                if (receiver != null) {
+                    context?.applicationContext?.unregisterReceiver(receiver)
+                    receiver = null
+                }
+                if (refreshReceiver != null) {
+                    context?.applicationContext?.unregisterReceiver(refreshReceiver)
+                    refreshReceiver = null
+                }
+            }.onFailure {
+                it.printStackTrace()
+            }
         }
     }
+
+    override fun onDisabled(context: Context?) {}
+
 
     override fun onUpdate(
         context: Context,
         appWidgetManager: AppWidgetManager?,
         appWidgetIds: IntArray
     ) {
-        Logger.dLog(TAG, "onUpdate = ${appWidgetIds.size}")
+        Logger.dLog(TAG, "onUpdate appWidgetIds = ${appWidgetIds[0]}")
         registry.handleLifecycleEvent(Lifecycle.Event.ON_RESUME)
+        appWidgetIdList.add(appWidgetIds[0])
 
         if (receiver == null) {
             receiver = TimeReceiver()
@@ -164,9 +187,6 @@ class WeatherWidgetClient : WeatherWidgetClientImp, LifecycleOwner {
     override fun getLifecycle(): Lifecycle = registry
 
 
-
-
-
     private class WidgetCoroutineScope : CoroutineScope {
         @ObsoleteCoroutinesApi
         override val coroutineContext: CoroutineContext
@@ -184,12 +204,11 @@ class WeatherWidgetClient : WeatherWidgetClientImp, LifecycleOwner {
         closeable.callResult {
             hold(responseFlow) { main.getWeatherQuality(city) }
                 .success {
-                    Logger.dLog(TAG,"getWeather success")
+                    Logger.dLog(TAG, "getWeather success")
                     Stores.putObject(StoreConstant.REQUEST_WEATHER, this.response)
                 }
         }
     }
-
 
 
     inner class TimeReceiver : BroadcastReceiver() {
