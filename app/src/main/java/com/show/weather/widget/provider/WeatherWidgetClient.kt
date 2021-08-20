@@ -79,15 +79,9 @@ class WeatherWidgetClient : WeatherWidgetClientImp, LifecycleOwner {
     }
     private val observers by lazy { ArrayMap<Int, Observer<in RoomBean?>>() }
 
-    /*private val responseFlow by lazy {
-        MutableSharedFlow<KResult<WeatherQuality>>(replay = 1).apply {
-            Stores.getObject<WeatherQuality>(StoreConstant.REQUEST_WEATHER, null)?.also { it ->
-                Logger.dLog(TAG, "tryEmit")
-                tryEmit(SuccessResult.create(it))
-            }
-
-        }
-    }*/
+    private val responseFlow by lazy {
+        MutableSharedFlow<KResult<WeatherQuality>>(extraBufferCapacity = 1,onBufferOverflow = BufferOverflow.DROP_LATEST)
+    }
 
     private val updateTime by lazy {
         MutableSharedFlow<Long>(replay = 1).apply {
@@ -188,18 +182,28 @@ class WeatherWidgetClient : WeatherWidgetClientImp, LifecycleOwner {
             val data = it?.stringValue
             val out = data?.jsonToClazz<WeatherQuality>()
             out?.apply {
-                Logger.dLog(TAG, "onUpdate getLive = ${this.hashCode()}")
+                Logger.dLog(TAG, "onUpdate getLive from DataBase = ${this.hashCode()}")
 
                 val now = this.result.heWeather5[0].now
                 views.setTextViewText(R.id.tvWeather, "${now.cond.txt},${now.tmp}°C")
-
-
                 appWidgetManager?.updateAppWidget(appWidgetIds, views)
             }
         }
-
         localLiveData.observe(this, observer)
         observers[appWidgetIds[0]] = observer
+
+        scope.launch(Dispatchers.Main.immediate) {
+            responseFlow.collect{
+                it.response?.apply {
+                    Logger.dLog(TAG, "onUpdate data from Network = ${this.hashCode()}")
+
+                    val now = this.result.heWeather5[0].now
+                    views.setTextViewText(R.id.tvWeather, "${now.cond.txt},${now.tmp}°C")
+                    appWidgetManager?.updateAppWidget(appWidgetIds, views)
+
+                }
+            }
+        }
     }
 
 
@@ -221,10 +225,9 @@ class WeatherWidgetClient : WeatherWidgetClientImp, LifecycleOwner {
     private fun getWeather(city: String) {
         val closeable = Coroutines(scope)
         closeable.callResult {
-            hold { main.getWeatherQuality(city) }
+            hold(responseFlow) { main.getWeatherQuality(city) }
                 .success {
                     Logger.dLog(TAG, "getWeather success")
-                    Stores.putObject(StoreConstant.REQUEST_WEATHER, this.response)
                 }
         }
     }
