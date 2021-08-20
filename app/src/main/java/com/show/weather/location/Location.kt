@@ -34,6 +34,7 @@ class Location {
         option.isLocationCacheEnable = true
         option.isNeedAddress = true
         option.isOnceLocation = true
+        option.httpTimeOut = 5000
         client.setLocationOption(option)
         client.setLocationListener(listener)
         isInit = true

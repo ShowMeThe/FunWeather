@@ -7,6 +7,7 @@ import com.show.kInject.core.ext.androidContextNotNull
 import com.show.kcore.base.AppContext
 import com.show.kcore.extras.log.Logger
 import com.show.weather.widget.provider.WeatherWidget
+import com.show.weather.widget.provider.WeatherWidgetClient.Companion.ACTION_REFRESH
 import java.util.concurrent.TimeUnit
 
 class WorkJob {
@@ -45,7 +46,7 @@ class BackJobWork(context: Context, workerParams: WorkerParameters) :
     Worker(context, workerParams) {
     override fun doWork(): Result {
         val intent = Intent()
-        intent.action = WeatherWidget.ACTION_REFRESH
+        intent.action = ACTION_REFRESH
         applicationContext.sendBroadcast(intent)
         Logger.dLog("WorkJob","doWork")
         return Result.success()
