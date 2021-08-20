@@ -6,17 +6,21 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.util.ArrayMap
 import android.util.Log
 import android.widget.RemoteViews
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
+import androidx.lifecycle.Observer
 import com.show.kInject.core.ext.single
 import com.show.kcore.extras.log.Logger
 import com.show.kcore.http.coroutines.Coroutines
 import com.show.kcore.http.coroutines.KResult
 import com.show.kcore.http.coroutines.SuccessResult
 import com.show.kcore.http.coroutines.callResult
+import com.show.kcore.http.jsonToClazz
+import com.show.kcore.rden.RoomBean
 import com.show.kcore.rden.Stores
 import com.show.weather.R
 import com.show.weather.api.Main
@@ -67,7 +71,15 @@ class WeatherWidgetClient : WeatherWidgetClientImp, LifecycleOwner {
     private var refreshReceiver: RefreshReceiver? = null
     private val appWidgetIdList = ArrayList<Int>()
 
-    private val responseFlow by lazy {
+    private val localLiveData by lazy {
+        Stores.getLive<WeatherQuality>(
+            this,
+            StoreConstant.REQUEST_WEATHER
+        )
+    }
+    private val observers by lazy { ArrayMap<Int, Observer<in RoomBean?>>() }
+
+    /*private val responseFlow by lazy {
         MutableSharedFlow<KResult<WeatherQuality>>(replay = 1).apply {
             Stores.getObject<WeatherQuality>(StoreConstant.REQUEST_WEATHER, null)?.also { it ->
                 Logger.dLog(TAG, "tryEmit")
@@ -75,7 +87,7 @@ class WeatherWidgetClient : WeatherWidgetClientImp, LifecycleOwner {
             }
 
         }
-    }
+    }*/
 
     private val updateTime by lazy {
         MutableSharedFlow<Long>(replay = 1).apply {
@@ -90,9 +102,13 @@ class WeatherWidgetClient : WeatherWidgetClientImp, LifecycleOwner {
     override fun onDeleted(context: Context?, appWidgetIds: IntArray?) {
         appWidgetIds?.forEach {
             appWidgetIdList.remove(it)
+            val observer  = observers[it]
+            if (observer != null) {
+                localLiveData.removeObserver(observer)
+            }
         }
-        if(appWidgetIdList.isEmpty()){
-            Logger.dLog(TAG,"close all job")
+        if (appWidgetIdList.isEmpty()) {
+            Logger.dLog(TAG, "close all job")
             kotlin.runCatching {
                 registry.handleLifecycleEvent(Lifecycle.Event.ON_DESTROY)
                 scope.cancel()
@@ -168,21 +184,24 @@ class WeatherWidgetClient : WeatherWidgetClientImp, LifecycleOwner {
             }
         }
 
-        scope.launch(Dispatchers.Main) {
-            responseFlow
-                .collect {
-                    it.response?.apply {
-                        Logger.dLog(TAG, "onUpdate getLive = ${this.hashCode()}")
+        val observer: Observer<in RoomBean?> = Observer<RoomBean?> {
+            val data = it?.stringValue
+            val out = data?.jsonToClazz<WeatherQuality>()
+            out?.apply {
+                Logger.dLog(TAG, "onUpdate getLive = ${this.hashCode()}")
 
-                        val now = this.result.heWeather5[0].now
-                        views.setTextViewText(R.id.tvWeather, "${now.cond.txt},${now.tmp}°C")
+                val now = this.result.heWeather5[0].now
+                views.setTextViewText(R.id.tvWeather, "${now.cond.txt},${now.tmp}°C")
 
 
-                        appWidgetManager?.updateAppWidget(appWidgetIds, views)
-                    }
-                }
+                appWidgetManager?.updateAppWidget(appWidgetIds, views)
+            }
         }
+
+        localLiveData.observe(this, observer)
+        observers[appWidgetIds[0]] = observer
     }
+
 
     override fun getLifecycle(): Lifecycle = registry
 
@@ -202,7 +221,7 @@ class WeatherWidgetClient : WeatherWidgetClientImp, LifecycleOwner {
     private fun getWeather(city: String) {
         val closeable = Coroutines(scope)
         closeable.callResult {
-            hold(responseFlow) { main.getWeatherQuality(city) }
+            hold { main.getWeatherQuality(city) }
                 .success {
                     Logger.dLog(TAG, "getWeather success")
                     Stores.putObject(StoreConstant.REQUEST_WEATHER, this.response)

@@ -87,7 +87,9 @@ object Stores {
         creator.roomDao().put(bean)
     }
 
-    inline fun <reified T> getLive(owner: LifecycleOwner,@NotNull key: String,crossinline onChange:(t:T?)->Unit){
+    inline fun <reified T> getLive(owner: LifecycleOwner,@NotNull key: String) = creator.roomDao().getLiveData(key)
+
+    inline fun <reified T> getLiveData(owner: LifecycleOwner,@NotNull key: String,crossinline onChange:(t:T?)->Unit){
         creator.roomDao().getLiveData(key).observe(owner){
             val data = it?.stringValue
             val out = data?.jsonToClazz<T>()
