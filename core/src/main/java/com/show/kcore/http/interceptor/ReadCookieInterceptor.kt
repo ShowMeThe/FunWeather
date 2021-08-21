@@ -3,10 +3,13 @@ package com.show.kcore.http.interceptor
 import okhttp3.Interceptor
 import okhttp3.Response
 import com.show.kcore.rden.Stores
+import java.io.IOException
+import kotlin.jvm.Throws
 
 
 class ReadCookieInterceptor : Interceptor {
 
+    @Throws(IOException::class,Exception::class)
     override fun intercept(chain: Interceptor.Chain): Response {
         val request = chain.request()
         val response = chain.proceed(request)

@@ -6,13 +6,14 @@ import com.show.kcore.extras.log.Logger
 import java.io.IOException
 
 import okhttp3.Interceptor
+import kotlin.jvm.Throws
 
 
 @Keep
 class RequestHeaderInterceptor : Interceptor {
 
 
-    @Throws(IOException::class)
+    @Throws(IOException::class,Exception::class)
     override fun intercept(chain: Interceptor.Chain): okhttp3.Response {
         val request = chain.request()
         val originalHttpUrl = request.url

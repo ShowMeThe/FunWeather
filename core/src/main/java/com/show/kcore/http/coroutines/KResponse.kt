@@ -36,6 +36,7 @@ class KResponse<T>(val data: MutableSharedFlow<KResult<T>>? = null) : IResponse<
     override suspend fun doOnError(e: Throwable, t: T?) {
         val out = FailedResult.create<T>(Exception(e))
         postData(out)
+        Logger.dLog("222222","doOnError = $onError")
         onError?.apply {
             withContext(Dispatchers.Main.immediate) {
                 invoke(out)

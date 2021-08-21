@@ -13,7 +13,12 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
 import androidx.lifecycle.Observer
+import com.show.kInject.core.ext.androidContext
+import com.show.kInject.core.ext.androidContextNotNull
 import com.show.kInject.core.ext.single
+import com.show.kclock.dateTime
+import com.show.kclock.format
+import com.show.kclock.yyyy_MM_dd_HHmmss
 import com.show.kcore.extras.log.Logger
 import com.show.kcore.http.coroutines.Coroutines
 import com.show.kcore.http.coroutines.KResult
@@ -32,6 +37,9 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.collect
+import okio.appendingSink
+import okio.buffer
+import java.io.File
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.coroutines.CoroutineContext
@@ -80,7 +88,10 @@ class WeatherWidgetClient : WeatherWidgetClientImp, LifecycleOwner {
     private val observers by lazy { ArrayMap<Int, Observer<in RoomBean?>>() }
 
     private val responseFlow by lazy {
-        MutableSharedFlow<KResult<WeatherQuality>>(extraBufferCapacity = 1,onBufferOverflow = BufferOverflow.DROP_LATEST)
+        MutableSharedFlow<KResult<WeatherQuality>>(
+            extraBufferCapacity = 1,
+            onBufferOverflow = BufferOverflow.DROP_LATEST
+        )
     }
 
     private val updateTime by lazy {
@@ -96,7 +107,7 @@ class WeatherWidgetClient : WeatherWidgetClientImp, LifecycleOwner {
     override fun onDeleted(context: Context?, appWidgetIds: IntArray?) {
         appWidgetIds?.forEach {
             appWidgetIdList.remove(it)
-            val observer  = observers[it]
+            val observer = observers[it]
             if (observer != null) {
                 localLiveData.removeObserver(observer)
             }
@@ -193,7 +204,7 @@ class WeatherWidgetClient : WeatherWidgetClientImp, LifecycleOwner {
         observers[appWidgetIds[0]] = observer
 
         scope.launch(Dispatchers.Main.immediate) {
-            responseFlow.collect{
+            responseFlow.collect {
                 it.response?.apply {
                     Logger.dLog(TAG, "onUpdate data from Network = ${this.hashCode()}")
 
@@ -227,8 +238,40 @@ class WeatherWidgetClient : WeatherWidgetClientImp, LifecycleOwner {
         closeable.callResult {
             hold(responseFlow) { main.getWeatherQuality(city) }
                 .success {
+                    writeLocalLog(true)
                     Logger.dLog(TAG, "getWeather success")
+                }.error {
+                    writeLocalLog(false)
                 }
+        }
+    }
+
+    private fun writeLocalLog(result: Boolean) {
+        kotlin.runCatching {
+            val context = androidContextNotNull()
+            val cacheDir = context.externalCacheDir!!.path + "/log"
+            val dirFile = File(cacheDir)
+            if(dirFile.exists().not()){
+                dirFile.mkdirs()
+            }
+            val cacheFile = File(dirFile.path + File.separator + "log.txt")
+            if (cacheFile.exists().not()) {
+                cacheFile.createNewFile()
+            }
+            val sink = cacheFile.appendingSink().buffer()
+            val newLine = if (cacheFile.length() <= 0L){
+                ""
+            }else{
+                "\n"
+            }
+            val newStr =
+                "${System.currentTimeMillis()
+                    .dateTime.format(yyyy_MM_dd_HHmmss)} result = $result $newLine"
+            sink.write(newStr.encodeToByteArray())
+            sink.flush()
+            sink.close()
+        }.onFailure {
+            it.printStackTrace()
         }
     }
 

@@ -1,6 +1,7 @@
 package com.show.weather.ui
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
@@ -31,6 +32,7 @@ import com.show.weather.const.StoreConstant
 import com.show.weather.databinding.ActivityMainBinding
 import com.show.weather.entity.*
 import com.show.weather.location.Location
+import com.show.weather.service.AlarmService
 import com.show.weather.ui.adapter.QualityAdapter
 import com.show.weather.ui.adapter.QualityItem
 import com.show.weather.ui.vm.MainViewModel
@@ -97,6 +99,9 @@ class MainActivity : BaseActivity<ActivityMainBinding, MainViewModel>() {
         }
         binding.refresh.setColorSchemeResources(R.color.colorPrimary)
         requestPermissionWhenNeed()
+        kotlin.runCatching {
+            startService(Intent(this, AlarmService::class.java))
+        }.onFailure { it.printStackTrace() }
     }
 
     /**
