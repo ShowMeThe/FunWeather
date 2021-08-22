@@ -74,12 +74,6 @@
                 android:resource="@xml/address_widget" />
         </receiver>
 
-        <provider
-            android:authorities="${applicationId}.workmanager-init"
-            android:name="androidx.work.impl.WorkManagerInitializer"
-            android:exported="false"
-            tools:node="remove"
-            />
 
     </application>
 

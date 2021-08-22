@@ -117,7 +117,6 @@ class WeatherWidgetClient : WeatherWidgetClientImp, LifecycleOwner {
             kotlin.runCatching {
                 registry.handleLifecycleEvent(Lifecycle.Event.ON_DESTROY)
                 scope.cancel()
-                WorkJob.getManager().cancel()
                 if (receiver != null) {
                     context?.applicationContext?.unregisterReceiver(receiver)
                     receiver = null
@@ -155,7 +154,8 @@ class WeatherWidgetClient : WeatherWidgetClientImp, LifecycleOwner {
                 .registerReceiver(refreshReceiver, IntentFilter().apply {
                     addAction(ACTION_REFRESH)
                 })
-            WorkJob.getManager().runJob()
+            requestLocation()
+            WorkJob.getManager().runNextJob()
         }
 
 
@@ -203,7 +203,7 @@ class WeatherWidgetClient : WeatherWidgetClientImp, LifecycleOwner {
         localLiveData.observe(this, observer)
         observers[appWidgetIds[0]] = observer
 
-        scope.launch(Dispatchers.Main.immediate) {
+        /*scope.launch(Dispatchers.Main.immediate) {
             responseFlow.collect {
                 it.response?.apply {
                     Logger.dLog(TAG, "onUpdate data from Network = ${this.hashCode()}")
@@ -214,7 +214,7 @@ class WeatherWidgetClient : WeatherWidgetClientImp, LifecycleOwner {
 
                 }
             }
-        }
+        }*/
     }
 
 
@@ -236,12 +236,10 @@ class WeatherWidgetClient : WeatherWidgetClientImp, LifecycleOwner {
     private fun getWeather(city: String) {
         val closeable = Coroutines(scope)
         closeable.callResult {
-            hold(responseFlow) { main.getWeatherQuality(city) }
+            hold { main.getWeatherQuality(city) }
                 .success {
-                    writeLocalLog(true)
+                    Stores.putObject(StoreConstant.REQUEST_WEATHER,this.response)
                     Logger.dLog(TAG, "getWeather success")
-                }.error {
-                    writeLocalLog(false)
                 }
         }
     }
@@ -289,6 +287,7 @@ class WeatherWidgetClient : WeatherWidgetClientImp, LifecycleOwner {
             if (intent.action == ACTION_REFRESH) {
                 Logger.dLog(TAG, "RefreshReceiver = ${intent.action}")
                 requestLocation()
+                WorkJob.getManager().runNextJob()
             }
         }
     }

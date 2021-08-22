@@ -38,6 +38,5 @@ class MainInitializer : Initializer<Boolean> {
             androidContext(context as Application)
             single { Http.createApi(Main::class.java) }
         }
-        WorkManager.initialize(context, Configuration.Builder().build())
     }
 }
