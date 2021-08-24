@@ -19,7 +19,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository by lazy { WeatherRepository(this) }
 
-    val weatherQuality =  MutableSharedFlow<KResult<WeatherQuality>>(replay = 1).apply {
+    val weatherQuality =  MutableSharedFlow<KResult<WeatherQuality>>().apply {
         viewModelScope.launch(Dispatchers.IO) {
             Stores.getObject<WeatherQuality>(StoreConstant.REQUEST_WEATHER,null)?.also{
                 emit(SuccessResult.create(it))

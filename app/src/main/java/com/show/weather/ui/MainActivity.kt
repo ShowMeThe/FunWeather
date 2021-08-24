@@ -20,6 +20,7 @@ import com.show.kcore.adapter.divider.RecycleViewDivider
 import com.show.kcore.base.BaseActivity
 import com.show.kcore.base.Transition
 import com.show.kcore.extras.display.dp
+import com.show.kcore.extras.gobal.collect
 import com.show.kcore.extras.gobal.gone
 import com.show.kcore.extras.gobal.read
 import com.show.kcore.extras.gobal.visible
@@ -50,9 +51,9 @@ class MainActivity : BaseActivity<ActivityMainBinding, MainViewModel>() {
 
     override fun observerUI() {
 
-        viewModel.weatherQuality.asLiveData()
-            .read(this) {
-                it?.apply {
+        viewModel.weatherQuality
+            .collect(this) {
+                it.response?.apply {
                     val weather5 = this.result.heWeather5[0]
                     initView(weather5.now, weather5.basic.update.loc)
                     initData(weather5.dailyForecast)
