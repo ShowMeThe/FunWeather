@@ -12,6 +12,7 @@
     <declare-styleable name="BlurMaskLayout">
         <attr name="blurRadius" format="float"/>
         <attr name="blurSampling" format="float"/>
+        <attr name="cornerRadius" format="dimension"/>
     </declare-styleable>
 
 </resources>

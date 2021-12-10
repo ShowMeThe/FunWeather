@@ -1,5 +1,7 @@
 import com.show.version.VersionPlugin
 
+val kotlin_version: String by extra
+
 plugins{
     id("com.android.library")
     id("kotlin-android")
@@ -7,6 +9,9 @@ plugins{
     id("kotlin-kapt")
     id("app-version")
     id("core-dependency")
+}
+apply {
+    plugin("kotlin-android")
 }
 
 android{
@@ -26,3 +31,7 @@ android{
     }
 }
 
+
+repositories {
+    mavenCentral()
+}

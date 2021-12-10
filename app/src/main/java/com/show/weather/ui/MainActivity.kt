@@ -1,19 +1,18 @@
 package com.show.weather.ui
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
+import android.view.MotionEvent
 import android.view.View
-import android.webkit.WebHistoryItem
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.databinding.ObservableArrayList
-import androidx.lifecycle.asLiveData
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.amap.api.location.AMapLocation
 import com.google.android.material.appbar.AppBarLayout
 import com.show.kclock.MILLIS_DAY
 import com.show.kcore.adapter.divider.RecycleViewDivider
@@ -22,7 +21,6 @@ import com.show.kcore.base.Transition
 import com.show.kcore.extras.display.dp
 import com.show.kcore.extras.gobal.collect
 import com.show.kcore.extras.gobal.gone
-import com.show.kcore.extras.gobal.read
 import com.show.kcore.extras.gobal.visible
 import com.show.kcore.extras.status.statusBar
 import com.show.kcore.extras.string.builder
@@ -38,6 +36,7 @@ import com.show.weather.ui.adapter.QualityAdapter
 import com.show.weather.ui.adapter.QualityItem
 import com.show.weather.ui.vm.MainViewModel
 import com.show.weather.utils.WeatherFilter
+import kotlin.math.absoluteValue
 
 @Transition
 class MainActivity : BaseActivity<ActivityMainBinding, MainViewModel>() {
@@ -66,8 +65,8 @@ class MainActivity : BaseActivity<ActivityMainBinding, MainViewModel>() {
 
     private fun initSun(astro: Astro) {
         binding {
-            sun.updateSunRise(astro.sr,astro.ss,"日出时间",R.drawable.sun)
-            moon.updateSunRise(astro.mr,astro.ms,"月出时间",R.drawable.moon)
+            sun.updateSunRise(astro.sr, astro.ss, "日出时间", R.drawable.sun)
+            moon.updateSunRise(astro.mr, astro.ms, "月出时间", R.drawable.moon)
         }
     }
 
@@ -103,6 +102,7 @@ class MainActivity : BaseActivity<ActivityMainBinding, MainViewModel>() {
         kotlin.runCatching {
             startService(Intent(this, AlarmService::class.java))
         }.onFailure { it.printStackTrace() }
+
     }
 
     /**
@@ -173,9 +173,9 @@ class MainActivity : BaseActivity<ActivityMainBinding, MainViewModel>() {
             tvWind.text = "${weather.wind.spd} -- ${weather.wind.dir}"
             tvTemp.text = weather.tmp.builder?.append("°C")
 
-            if(WeatherFilter.getWeatherRain(weather.cond.txt)){
+            if (WeatherFilter.getWeatherRain(weather.cond.txt)) {
                 rainView.visible()
-            }else{
+            } else {
                 rainView.gone()
             }
 
@@ -195,8 +195,11 @@ class MainActivity : BaseActivity<ActivityMainBinding, MainViewModel>() {
         }
     }
 
+
+    @SuppressLint("ClickableViewAccessibility")
     override fun initListener() {
         binding {
+
             appBar.addOnOffsetChangedListener(AppBarLayout.OnOffsetChangedListener { _, verticalOffset ->
                 refresh.isEnabled = verticalOffset >= 0
             })
@@ -206,7 +209,28 @@ class MainActivity : BaseActivity<ActivityMainBinding, MainViewModel>() {
                 requestWeather(Stores.getString(StoreConstant.REQUEST_LOCATION_ADDRESS, "") ?: "北京")
             }
 
+            coordinator.setOnTouchListener { v, event ->
+                if(event.action == MotionEvent.ACTION_MOVE){
+                    maskQuality.startAnimation()
 
+                }else{
+                    maskQuality.stopAnimation()
+
+                }
+                false
+            }
+
+
+            nest.setOnTouchListener { v, event ->
+                if(event.action == MotionEvent.ACTION_MOVE){
+                    maskQuality.startAnimation()
+
+                }else{
+                    maskQuality.stopAnimation()
+
+                }
+                false
+            }
         }
 
 

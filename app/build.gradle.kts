@@ -1,5 +1,7 @@
 import com.show.version.getDateTime
 
+val kotlin_version: String by extra
+
 plugins{
     id("com.android.application")
     id("kotlin-android")
@@ -7,6 +9,9 @@ plugins{
     id("kotlin-kapt")
     id("app-version")
     id("app-dependency")
+}
+apply {
+    plugin("kotlin-android")
 }
 
 
@@ -86,3 +91,6 @@ android{
 }
 
 
+repositories {
+    mavenCentral()
+}
