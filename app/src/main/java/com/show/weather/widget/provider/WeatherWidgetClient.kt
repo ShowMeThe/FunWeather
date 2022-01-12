@@ -1,11 +1,15 @@
 package com.show.weather.widget.provider
 
 import android.app.PendingIntent
+import android.app.WallpaperManager
 import android.appwidget.AppWidgetManager
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.graphics.Color
+import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.Drawable
 import android.util.ArrayMap
 import android.util.Log
 import android.widget.RemoteViews
@@ -13,6 +17,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
 import androidx.lifecycle.Observer
+import androidx.palette.graphics.Palette
 import com.show.kInject.core.ext.androidContext
 import com.show.kInject.core.ext.androidContextNotNull
 import com.show.kInject.core.ext.single
@@ -74,7 +79,7 @@ class WeatherWidgetClient : WeatherWidgetClientImp, LifecycleOwner {
     private val scope = WidgetCoroutineScope()
     private val calendar by lazy { Calendar.getInstance(Locale.getDefault()) }
 
-
+    private var manager: WallpaperManager? = null
     private var receiver: TimeReceiver? = null
     private var refreshReceiver: RefreshReceiver? = null
     private val appWidgetIdList = ArrayList<Int>()
@@ -144,6 +149,8 @@ class WeatherWidgetClient : WeatherWidgetClientImp, LifecycleOwner {
         appWidgetIdList.add(appWidgetIds[0])
 
         if (receiver == null) {
+            manager = WallpaperManager.getInstance(context)
+
             receiver = TimeReceiver()
             context.applicationContext
                 .registerReceiver(receiver, IntentFilter().apply {
@@ -166,6 +173,10 @@ class WeatherWidgetClient : WeatherWidgetClientImp, LifecycleOwner {
         )
         views.setOnClickPendingIntent(R.id.mainContainer, pendingIntent)
         views.setTextViewText(R.id.tvWeather, "")
+        val color = findTextColor(manager?.drawable)
+        views.setTextColor(R.id.tvWeather,color)
+        views.setTextColor(R.id.tvDate,color)
+        views.setTextColor(R.id.timer,color)
 
         scope.launch(Dispatchers.Main.immediate) {
             updateTime.collect {
@@ -238,7 +249,7 @@ class WeatherWidgetClient : WeatherWidgetClientImp, LifecycleOwner {
         closeable.callResult {
             hold { main.getWeatherQuality(city) }
                 .success {
-                    Stores.putObject(StoreConstant.REQUEST_WEATHER,this.response)
+                    Stores.putObject(StoreConstant.REQUEST_WEATHER, this.response)
                     Logger.dLog(TAG, "getWeather success")
                 }
         }
@@ -249,7 +260,7 @@ class WeatherWidgetClient : WeatherWidgetClientImp, LifecycleOwner {
             val context = androidContextNotNull()
             val cacheDir = context.externalCacheDir!!.path + "/log"
             val dirFile = File(cacheDir)
-            if(dirFile.exists().not()){
+            if (dirFile.exists().not()) {
                 dirFile.mkdirs()
             }
             val cacheFile = File(dirFile.path + File.separator + "log.txt")
@@ -257,14 +268,16 @@ class WeatherWidgetClient : WeatherWidgetClientImp, LifecycleOwner {
                 cacheFile.createNewFile()
             }
             val sink = cacheFile.appendingSink().buffer()
-            val newLine = if (cacheFile.length() <= 0L){
+            val newLine = if (cacheFile.length() <= 0L) {
                 ""
-            }else{
+            } else {
                 "\n"
             }
             val newStr =
-                "${System.currentTimeMillis()
-                    .dateTime.format(yyyy_MM_dd_HHmmss)} result = $result $newLine"
+                "${
+                    System.currentTimeMillis()
+                        .dateTime.format(yyyy_MM_dd_HHmmss)
+                } result = $result $newLine"
             sink.write(newStr.encodeToByteArray())
             sink.flush()
             sink.close()
@@ -273,6 +286,11 @@ class WeatherWidgetClient : WeatherWidgetClientImp, LifecycleOwner {
         }
     }
 
+    private fun findTextColor(drawable: Drawable?): Int {
+        if (drawable == null) return Color.WHITE
+        val bitmap = (drawable as BitmapDrawable).bitmap
+        return Palette.from(bitmap).generate().getLightVibrantColor(Color.WHITE)
+    }
 
     inner class TimeReceiver : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent) {

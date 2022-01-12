@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.*
 import android.util.AttributeSet
 import android.util.Log
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewTreeObserver
 import android.widget.RelativeLayout
@@ -52,6 +53,8 @@ class BlurMaskLayout @JvmOverloads constructor(
 
 
     init {
+        isFocusableInTouchMode = false
+        isClickable = false
         initAttr(context, attrs)
         setWillNotDraw(false)
         background = null
@@ -65,7 +68,7 @@ class BlurMaskLayout @JvmOverloads constructor(
         sampling = array.getFloat(R.styleable.BlurMaskLayout_blurSampling, 4f)
             .coerceAtMost(10f).coerceAtLeast(4f)
         cornerRadius = array.getDimension(R.styleable.BlurMaskLayout_cornerRadius, 0f)
-        cornerRadius = cornerRadius / 1f.dp
+        cornerRadius /= 1f.dp
         array.recycle()
     }
 
@@ -77,6 +80,11 @@ class BlurMaskLayout @JvmOverloads constructor(
             detachedFromWindow()
         }
     }
+
+    override fun onInterceptTouchEvent(ev: MotionEvent?): Boolean {
+        return false
+    }
+
 
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
@@ -162,7 +170,6 @@ class BlurMaskLayout @JvmOverloads constructor(
             }
         }
 
-        Log.e("222222","skipFrame = ${skipFrame}")
         /**
          * when get the same result stop postInvalidate
          */

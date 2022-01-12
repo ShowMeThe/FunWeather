@@ -209,11 +209,11 @@ class MainActivity : BaseActivity<ActivityMainBinding, MainViewModel>() {
                 requestWeather(Stores.getString(StoreConstant.REQUEST_LOCATION_ADDRESS, "") ?: "北京")
             }
 
-            coordinator.setOnTouchListener { v, event ->
+          /*  coordinator.setOnTouchListener { v, event ->
+
                 if(event.action == MotionEvent.ACTION_MOVE){
                     maskQuality.startAnimation()
-
-                }else{
+                }else if(event.action == MotionEvent.ACTION_UP || event.action == MotionEvent.ACTION_CANCEL){
                     maskQuality.stopAnimation()
 
                 }
@@ -222,15 +222,25 @@ class MainActivity : BaseActivity<ActivityMainBinding, MainViewModel>() {
 
 
             nest.setOnTouchListener { v, event ->
+
                 if(event.action == MotionEvent.ACTION_MOVE){
                     maskQuality.startAnimation()
-
-                }else{
+                }else if(event.action == MotionEvent.ACTION_UP || event.action == MotionEvent.ACTION_CANCEL){
                     maskQuality.stopAnimation()
-
                 }
                 false
             }
+
+            rvQuality.setOnTouchListener { v, event ->
+
+                if(event.action == MotionEvent.ACTION_MOVE){
+                    maskQuality.startAnimation()
+                }else if(event.action == MotionEvent.ACTION_UP || event.action == MotionEvent.ACTION_CANCEL){
+                    maskQuality.stopAnimation()
+                }
+                false
+            }*/
+
         }
 
 
