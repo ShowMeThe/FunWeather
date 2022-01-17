@@ -151,21 +151,20 @@ class BlurMaskLayout @JvmOverloads constructor(
         globalCanvas.drawPicture(picture)
         globalCanvas.restore()
 
-
-
         var skipFrame = false
         synchronized(any) {
             if (byteBuffer == null) {
                 byteBuffer = ByteBuffer.allocate(newBitmap.allocationByteCount)
                 newBitmap.copyPixelsToBuffer(byteBuffer)
             } else {
-                val lastBitmap =
-                    Bitmap.createBitmap(scaledWidth, scaledHeight, Bitmap.Config.ARGB_8888)
+                val lastBitmap = Bitmap.createBitmap(scaledWidth, scaledHeight, Bitmap.Config.ARGB_8888)
                 byteBuffer?.position(0)
-                lastBitmap.copyPixelsFromBuffer(byteBuffer)
-                skipFrame = compare2Bitmap(newBitmap, lastBitmap)
-                if (skipFrame.not()) {
-                    byteBuffer = null
+                kotlin.runCatching {
+                    lastBitmap.copyPixelsFromBuffer(byteBuffer)
+                    skipFrame = compare2Bitmap(newBitmap, lastBitmap)
+                    if (skipFrame.not()) {
+                        byteBuffer = null
+                    }
                 }
             }
         }
