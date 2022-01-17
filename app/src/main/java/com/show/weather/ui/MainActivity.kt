@@ -83,6 +83,9 @@ class MainActivity : BaseActivity<ActivityMainBinding, MainViewModel>() {
         binding {
             rvQuality.adapter = adapter
             rvQuality.layoutManager = GridLayoutManager(this@MainActivity, 2)
+            if(rvQuality.itemDecorationCount > 0){
+                rvQuality.removeItemDecorationAt(0)
+            }
             rvQuality.addItemDecoration(
                 RecycleViewDivider(
                     RecyclerView.VERTICAL,
