@@ -41,6 +41,7 @@ import kotlin.math.absoluteValue
 @Transition
 class MainActivity : BaseActivity<ActivityMainBinding, MainViewModel>() {
 
+    private  val list = ObservableArrayList<QualityItem>()
 
     override fun getViewId(): Int = R.layout.activity_main
 
@@ -71,7 +72,7 @@ class MainActivity : BaseActivity<ActivityMainBinding, MainViewModel>() {
     }
 
     private fun initQuality(quality: WeatherQuality) {
-        val list = ObservableArrayList<QualityItem>()
+        list.clear()
         val city = quality.result.heWeather5[0].aqi.city
         list.add(QualityItem("${city.pm25}μg/m^3", R.drawable.ic_pm2_5, "PM2.5"))
         list.add(QualityItem("${city.pm10}μg/m^3", R.drawable.ic_pm1_0, "PM1.0"))
@@ -79,21 +80,6 @@ class MainActivity : BaseActivity<ActivityMainBinding, MainViewModel>() {
         list.add(QualityItem("${city.o3}μg/m^3", R.drawable.ic_o3, "O3"))
         list.add(QualityItem("${city.co}mg/m^3", R.drawable.ic_co, "CO"))
         list.add(QualityItem("${city.so2}μg/m^3", R.drawable.ic_so2, "SO2"))
-        val adapter = QualityAdapter(this@MainActivity, list)
-        binding {
-            rvQuality.adapter = adapter
-            rvQuality.layoutManager = GridLayoutManager(this@MainActivity, 2)
-            if(rvQuality.itemDecorationCount > 0){
-                rvQuality.removeItemDecorationAt(0)
-            }
-            rvQuality.addItemDecoration(
-                RecycleViewDivider(
-                    RecyclerView.VERTICAL,
-                    dividerColor = ContextCompat.getColor(this@MainActivity, R.color.colorPrimary),
-                    dividerHeight = 0.5f.dp.toInt(), padding = 15f.dp
-                )
-            )
-        }
     }
 
     override fun init(savedInstanceState: Bundle?) {
@@ -185,6 +171,23 @@ class MainActivity : BaseActivity<ActivityMainBinding, MainViewModel>() {
             binding.weather.apply {
                 updateReportTime(reportTime)
                 resetIcons(*WeatherFilter.getWeatherByName(weather.cond.txt))
+            }
+
+
+            val adapter = QualityAdapter(this@MainActivity, list)
+            binding {
+                rvQuality.adapter = adapter
+                rvQuality.layoutManager = GridLayoutManager(this@MainActivity, 2)
+                if(rvQuality.itemDecorationCount > 0){
+                    rvQuality.removeItemDecorationAt(0)
+                }
+                rvQuality.addItemDecoration(
+                    RecycleViewDivider(
+                        RecyclerView.VERTICAL,
+                        dividerColor = ContextCompat.getColor(this@MainActivity, R.color.colorPrimary),
+                        dividerHeight = 0.5f.dp.toInt(), padding = 15f.dp
+                    )
+                )
             }
         }
     }
